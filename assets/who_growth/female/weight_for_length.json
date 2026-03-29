@@ -1,0 +1,14 @@
+[
+  {
+    "length_cm": 50,
+    "minus_2sd": 2.5,
+    "median": 3.4,
+    "plus_2sd": 4.3
+  },
+  {
+    "length_cm": 60,
+    "minus_2sd": 4.9,
+    "median": 5.9,
+    "plus_2sd": 7.1
+  }
+]

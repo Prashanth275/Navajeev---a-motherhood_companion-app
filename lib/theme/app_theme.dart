@@ -5,9 +5,7 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
 
-    // ─────────────────────────────────
-    // 🌸 GLOBAL COLORS
-    // ─────────────────────────────────
+    // GLOBAL COLORS
     scaffoldBackgroundColor: AppColors.background,
     primaryColor: AppColors.primaryAccent,
 
@@ -19,9 +17,8 @@ class AppTheme {
       onSurface: AppColors.textPrimary,
     ),
 
-    // ─────────────────────────────────
-    // 🧭 APP BAR THEME
-    // ─────────────────────────────────
+    // APP BAR THEME
+
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -33,9 +30,7 @@ class AppTheme {
       ),
     ),
 
-    // ─────────────────────────────────
-    // 📝 TEXT THEME
-    // ─────────────────────────────────
+    // TEXT THEME
     textTheme: const TextTheme(
       headlineSmall: TextStyle(
         fontSize: 20,
@@ -51,9 +46,7 @@ class AppTheme {
       bodySmall: TextStyle(fontSize: 13, color: AppColors.textSecondary),
     ),
 
-    // ─────────────────────────────────
-    // 🧱 CARD THEME
-    // ─────────────────────────────────
+    // CARD THEME
     cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 4,
@@ -61,9 +54,7 @@ class AppTheme {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     ),
 
-    // ─────────────────────────────────
-    // 🔘 ELEVATED BUTTON THEME
-    // ─────────────────────────────────
+    // ELEVATED BUTTON THEME
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primaryAccent,
@@ -74,10 +65,7 @@ class AppTheme {
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     ),
-
-    // ─────────────────────────────────
-    // ⌨️ INPUT / TEXTFIELD THEME
-    // ─────────────────────────────────
+// INPUT
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.surface,
@@ -96,17 +84,13 @@ class AppTheme {
       labelStyle: const TextStyle(color: AppColors.textSecondary),
     ),
 
-    // ─────────────────────────────────
-    // 💬 DIVIDER THEME
-    // ─────────────────────────────────
+    // DIVIDER THEME
     dividerTheme: DividerThemeData(
       color: AppColors.textSecondary.withValues(alpha: 0.3),
       thickness: 1,
     ),
 
-    // ─────────────────────────────────
-    // 🔔 SNACKBAR / FEEDBACK
-    // ─────────────────────────────────
+    //SNACK BAR
     snackBarTheme: SnackBarThemeData(
       backgroundColor: AppColors.primaryAccent,
       contentTextStyle: const TextStyle(color: Colors.white),

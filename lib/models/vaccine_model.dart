@@ -3,7 +3,7 @@ enum VaccineStatus { upcoming, due, overdue, done }
 class Vaccine {
   final String id;
   final String name;
-  final String milestone; // e.g. "At Birth", "6 Weeks"
+  final String milestone;
   final int targetDaysFromBirth;
 
   final String? description;
@@ -30,12 +30,12 @@ class Vaccine {
     this.notes,
   });
 
-  // 🔹 COMPUTED: Due date (NOT stored)
+  // COMPUTED: Due date
   DateTime getDueDate(DateTime babyDob) {
     return babyDob.add(Duration(days: targetDaysFromBirth));
   }
 
-  // 🔹 COMPUTED: Status (NOT stored)
+  // COMPUTED: Status
   VaccineStatus getStatus(DateTime babyDob) {
     if (actualDate != null) return VaccineStatus.done;
 
@@ -54,7 +54,7 @@ class Vaccine {
     return VaccineStatus.overdue;
   }
 
-  // 🔥 Firestore serialization (FACTS ONLY)
+  // Firestore serialization
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
@@ -70,7 +70,7 @@ class Vaccine {
     };
   }
 
-  // 🔥 Firestore → Model
+  // Firestore Model
   factory Vaccine.fromFirestore(String id, Map<String, dynamic> data) {
     return Vaccine(
       id: id,
@@ -91,7 +91,7 @@ class Vaccine {
     );
   }
 
-  // 🔁 Copy with updates
+  // Copy with updates
   Vaccine copyWith({
     DateTime? actualDate,
     String? notes,

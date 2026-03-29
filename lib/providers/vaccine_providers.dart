@@ -5,80 +5,77 @@ import '../services/notification_service.dart';
 import '../services/auth_service.dart';
 
 class VaccineProvider extends ChangeNotifier {
-  final NotificationService _notificationService = NotificationService();
-  final AuthService _authService = authService;
+  final AuthService _authService;
 
-  StreamSubscription? _subscription;
+  VaccineProvider({required AuthService authService})
+      : _authService = authService;
 
+  StreamSubscription? _sub;
   List<Vaccine> _vaccines = [];
   bool _isLoading = true;
-  DateTime? _dob;
 
-  // ───────── Getters ─────────
+  DateTime? _babyDob;
+  String? _babyId;
+
   List<Vaccine> get vaccines => _vaccines;
   bool get isLoading => _isLoading;
-  DateTime? get dob => _dob;
 
-  // ───────── Progress ─────────
   int get completedCount =>
       _vaccines.where((v) => v.actualDate != null).length;
 
   int get totalCount => _vaccines.length;
 
-  double get progressPercentage =>
-      totalCount == 0 ? 0 : completedCount / totalCount;
-
-  // ───────── Next upcoming vaccine ─────────
   Vaccine? get nextUpcomingVaccine {
-    if (_dob == null) return null;
+    if (_babyDob == null) return null;
 
     final pending = _vaccines
-        .where((v) => v.getStatus(_dob!) != VaccineStatus.done)
+        .where((v) => v.actualDate == null)
         .toList();
 
     if (pending.isEmpty) return null;
 
-    pending.sort((a, b) =>
-        a.getDueDate(_dob!).compareTo(b.getDueDate(_dob!)));
+    pending.sort((a, b) {
+      final aDue = a.getDueDate(_babyDob!);
+      final bDue = b.getDueDate(_babyDob!);
+      return aDue.compareTo(bDue);
+    });
 
     return pending.first;
   }
 
-  // ───────── Init with DOB ─────────
-  void initializeWithDob(DateTime dob) {
-    _dob = dob;
+  void initialize({
+    required String babyId,
+    required DateTime babyDob,
+  }) {
+    _babyId = babyId;
+    _babyDob = babyDob;
+
+    _sub?.cancel();
     _isLoading = true;
     notifyListeners();
 
-    _subscription?.cancel();
-    _subscription = _authService.getVaccinations().listen((list) {
+    _sub = _authService
+        .getVaccinationsForBaby(babyId)
+        .listen((list) {
       _vaccines = list;
       _isLoading = false;
       notifyListeners();
     });
   }
 
-  // ───────── Mark vaccine done ─────────
-  Future<void> markAsDone(String id, DateTime actualDate) async {
-    final index = _vaccines.indexWhere((v) => v.id == id);
-    if (index == -1) return;
+  Future<void> markAsDone(String vaccineId, DateTime date) async {
+    if (_babyId == null) return;
 
-    final updated = _vaccines[index].copyWith(
-      actualDate: actualDate,
+    await _authService.markVaccinationGiven(
+      babyId: _babyId!,
+      vaccineId: vaccineId,
+      actualDate: date,
     );
-
-    _vaccines[index] = updated;
-    notifyListeners();
-
-    await _notificationService.cancelReminders(updated);
-    await _authService.updateVaccine(updated);
-
   }
 
-  // ───────── Cleanup ─────────
   @override
   void dispose() {
-    _subscription?.cancel();
+    _sub?.cancel();
     super.dispose();
   }
 }

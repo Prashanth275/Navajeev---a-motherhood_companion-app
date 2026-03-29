@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "56811257855",
+    "project_id": "navajeev-e3262",
+    "storage_bucket": "navajeev-e3262.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:56811257855:android:31a41878ccee4c5d13b1ca",
+        "android_client_info": {
+          "package_name": "com.example.navajeev_m"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeyH4zeLzo5bQQ25Eq6DFNwaGC2-n3X3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

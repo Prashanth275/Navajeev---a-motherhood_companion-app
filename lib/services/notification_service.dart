@@ -15,9 +15,6 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
   FlutterLocalNotificationsPlugin();
 
-  // ─────────────────────────────────────────
-  // Init
-  // ─────────────────────────────────────────
   Future<void> init() async {
     tz.initializeTimeZones();
 
@@ -40,15 +37,11 @@ class NotificationService {
     await androidImpl?.requestNotificationsPermission();
   }
 
-  // ─────────────────────────────────────────
-  // Schedule vaccine reminders
-  // ─────────────────────────────────────────
-  Future<void> scheduleVaccineReminders({
-    required Vaccine vaccine,
-    required DateTime babyDob,
-  }) async {
+  Future<void> scheduleVaccineReminders(
+      Vaccine vaccine,
+      DateTime babyDob,
+      ) async {
     final status = vaccine.getStatus(babyDob);
-
     if (status == VaccineStatus.done) return;
 
     final dueDate = vaccine.getDueDate(babyDob);
@@ -56,7 +49,6 @@ class NotificationService {
 
     await cancelReminders(vaccine);
 
-    // 7 days before
     await _scheduleIfFuture(
       id: baseId + 1,
       title: 'Upcoming Vaccination',
@@ -64,7 +56,6 @@ class NotificationService {
       dateTime: dueDate.subtract(const Duration(days: 7)),
     );
 
-    // 1 day before
     await _scheduleIfFuture(
       id: baseId + 2,
       title: 'Vaccination Tomorrow',
@@ -72,7 +63,6 @@ class NotificationService {
       dateTime: dueDate.subtract(const Duration(days: 1)),
     );
 
-    // Due day morning
     await _scheduleIfFuture(
       id: baseId + 3,
       title: 'Vaccination Due Today',
@@ -86,9 +76,6 @@ class NotificationService {
     );
   }
 
-  // ─────────────────────────────────────────
-  // Cancel reminders
-  // ─────────────────────────────────────────
   Future<void> cancelReminders(Vaccine vaccine) async {
     final baseId = _baseId(vaccine.id);
     await _plugin.cancel(id: baseId + 1);
@@ -96,9 +83,6 @@ class NotificationService {
     await _plugin.cancel(id: baseId + 3);
   }
 
-  // ─────────────────────────────────────────
-  // Helpers
-  // ─────────────────────────────────────────
   int _baseId(String id) =>
       id.codeUnits.fold(0, (a, b) => a + b);
 
@@ -111,10 +95,10 @@ class NotificationService {
     if (dateTime.isBefore(DateTime.now())) return;
 
     await _plugin.zonedSchedule(
-      id: id, // Fixed: Named parameter
-      title: title, // Fixed: Named parameter
-      body: body, // Fixed: Named parameter
-      scheduledDate: tz.TZDateTime.from(dateTime, tz.local), // Fixed: Named parameter
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(dateTime, tz.local),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'vaccination_channel',
@@ -125,7 +109,6 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      // Fixed: Removed uiLocalNotificationDateInterpretation
     );
   }
 }

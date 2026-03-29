@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'screens/auth/auth_page.dart';
 import 'screens/home/home_page.dart';
 import 'services/auth_service.dart';
@@ -9,27 +10,26 @@ class Wrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: authService,
-      builder: (context, child) {
-        if (authService.isLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+    final auth = context.watch<AuthService>();
 
-        if (authService.isAuthenticated) {
-          if (authService.isProfileComplete) {
-            return const HomePage();
-          } else {
-            return const StageSelectionPage();
-          }
-        } else {
-          return const AuthPage();
-        }
-      },
-    );
+    // Loading
+    if (auth.isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Not logged in
+    if (!auth.isAuthenticated) {
+      return const AuthPage();
+    }
+
+    // Logged in but profile incomplete
+    if (!auth.isProfileComplete) {
+      return const StageSelectionPage();
+    }
+
+    // Fully ready
+    return const HomePage();
   }
 }
-
-

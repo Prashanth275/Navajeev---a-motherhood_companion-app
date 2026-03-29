@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:navajeev_m/screens/tracker/trimester_tracker/trimester_tracker_screen.dart';
 import 'package:navajeev_m/screens/tracker/vaccination_tracker_page.dart';
+import 'package:navajeev_m/screens/tracker/baby_growth_tracker/growth_home_page.dart';
 
 class TrackersPage extends StatelessWidget {
   final String? singleTracker;
@@ -8,11 +10,14 @@ class TrackersPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If a specific tracker is requested via SideNav, show that content directly
     if (singleTracker != null) {
       if (singleTracker == 'Vaccination Tracker') {
         return const VaccinationTrackerPage();
       }
+      if (singleTracker == 'Growth Tracker') {
+        return const GrowthHomePage();
+      }
+
       return Scaffold(
         body: Center(
           child: Column(
@@ -36,7 +41,6 @@ class TrackersPage extends StatelessWidget {
       );
     }
 
-    // Default list view for general "Trackers" page
     final trackers = [
       {'title': 'Vaccination Tracker', 'icon': Icons.vaccines},
       {'title': 'Growth Tracker', 'icon': Icons.show_chart},
@@ -63,8 +67,8 @@ class TrackersPage extends StatelessWidget {
                     builder: (context) => const VaccinationTrackerPage(),
                   ),
                 );
-              } else {
-                // Navigate to same page but with singleTracker set
+              }
+              else {
                 Navigator.push(
                   context,
                   MaterialPageRoute(

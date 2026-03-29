@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/vaccine_model.dart';
-import '../services/auth_service.dart';
-import '../theme/app_colors.dart';
+import '../../models/vaccine_model.dart';
+import '../../services/auth_service.dart';
+import '../../theme/app_colors.dart';
 
 enum VaccineCardStyle { featured, list, completed }
 
@@ -20,6 +20,7 @@ class VaccineCard extends StatelessWidget {
     this.style = VaccineCardStyle.list,
   });
 
+
   @override
   Widget build(BuildContext context) {
     switch (style) {
@@ -32,9 +33,6 @@ class VaccineCard extends StatelessWidget {
     }
   }
 
-  // ─────────────────────────────────────────
-  // FEATURED CARD
-  // ─────────────────────────────────────────
   Widget _buildFeaturedCard(BuildContext context) {
     final dateFormat = DateFormat('MMM d, yyyy');
     final dueDate = vaccine.getDueDate(babyDob);
@@ -140,9 +138,7 @@ class VaccineCard extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────
-  // LIST CARD
-  // ─────────────────────────────────────────
+// LIST CARD
   Widget _buildListCard(BuildContext context) {
     final dateFormat = DateFormat('MMM d, yyyy');
     final dueDate = vaccine.getDueDate(babyDob);
@@ -200,9 +196,7 @@ class VaccineCard extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────
-  // COMPLETED CARD
-  // ─────────────────────────────────────────
+// COMPLETED CARD
   Widget _buildCompletedCard(BuildContext context) {
     final dateFormat = DateFormat('MMM d, yyyy');
 
@@ -302,13 +296,8 @@ class VaccineCard extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────
-  // DETAILS MODAL
-  // ─────────────────────────────────────────
+// DETAILS MODAL
   void _showVaccineDetails(BuildContext context) {
-    final babyDob =
-        authService.currentUser!.babyDetails!.dateOfBirth;
-
     final isDone =
         vaccine.getStatus(babyDob) == VaccineStatus.done;
 
@@ -361,7 +350,7 @@ class VaccineCard extends StatelessWidget {
 
                   const SizedBox(height: 28),
 
-                  // 🛡 Protection
+                  // Protection
                   if (vaccine.protection != null ||
                       vaccine.description != null) ...[
                     _detailSection(
@@ -373,7 +362,7 @@ class VaccineCard extends StatelessWidget {
                     const SizedBox(height: 20),
                   ],
 
-                  // ⚠️ Side Effects
+                  // Side Effects
                   if (vaccine.sideEffects != null &&
                       vaccine.sideEffects!.isNotEmpty) ...[
                     _listSection(
@@ -383,7 +372,7 @@ class VaccineCard extends StatelessWidget {
                     const SizedBox(height: 20),
                   ],
 
-                  // ❤️ Care
+                  // Care
                   if (vaccine.care != null) ...[
                     _detailSection(
                       title: 'Care & Comfort',

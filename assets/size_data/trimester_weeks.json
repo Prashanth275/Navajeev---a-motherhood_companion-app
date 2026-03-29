@@ -1,0 +1,174 @@
+[
+  {"weekNumber":1,"babySizeCm":0.0,"symptoms":[],"tips": [
+    "Maintain a balanced diet",
+    "Avoid alcohol and smoking",
+    "Start prenatal vitamins if planning pregnancy"]},
+  {"weekNumber":2,"babySizeCm":0.0,"symptoms":[], "tips": [
+    "Continue folic acid supplementation",
+    "Stay hydrated",
+    "Track your menstrual cycle"]},
+  {"weekNumber":3,"babySizeCm":0.1,"symptoms":["Mild cramping","Light spotting","Fatigue"],"tips": [
+    "Rest adequately",
+    "Avoid heavy lifting",
+    "Consult your doctor if you suspect pregnancy"]},
+  {"weekNumber":4,"babySizeCm":0.2,"symptoms":["Missed period","Breast tenderness","Fatigue","Mild nausea"], "tips": [
+    "Schedule your first prenatal appointment",
+    "Eat small frequent meals",
+    "Avoid raw or undercooked foods"]},
+  {"weekNumber":5,"babySizeCm":0.4,"symptoms":["Morning sickness","Frequent urination","Mood swings"],"tips": [
+    "Manage nausea with small meals",
+    "Keep crackers nearby",
+    "Stay hydrated"]},
+  {"weekNumber":6,"babySizeCm":0.6,"symptoms":["Nausea","Food aversions","Breast soreness","Bloating"],"tips": [
+    "Take prenatal vitamins daily",
+    "Avoid strong smells if sensitive",
+    "Rest when fatigued"]},
+  {"weekNumber":7,"babySizeCm":1.0,"symptoms":["Fatigue","Heightened smell sensitivity","Constipation"],"tips": [
+    "Eat iron-rich foods",
+    "Drink plenty of fluids",
+    "Avoid self-medication"]},
+  {"weekNumber":8,"babySizeCm":1.6,"symptoms":["Nausea","Headaches","Mood swings","Mild cramps"], "tips": [
+    "Maintain gentle physical activity",
+    "Sleep early",
+    "Reduce caffeine intake"]},
+  {"weekNumber":9,"babySizeCm":2.3,"symptoms":["Heartburn","Frequent urination","Fatigue"],"tips": [
+    "Practice stress-relief techniques",
+    "Avoid spicy foods if heartburn occurs",
+    "Wear comfortable bras"]},
+  {"weekNumber":10,"babySizeCm":3.1,"symptoms":["Bloating","Constipation","Breast enlargement"], "tips": [
+    "Continue balanced nutrition",
+    "Stay hydrated",
+    "Discuss screening tests with your doctor"]},
+  {"weekNumber":11,"babySizeCm":4.1,"symptoms":["Mild dizziness","Increased appetite","Nasal congestion"], "tips": [
+    "Practice light stretching",
+    "Maintain regular meals",
+    "Avoid long hours without rest"]},
+  {"weekNumber":12,"babySizeCm":5.4,"symptoms":["Reduced nausea","Visible veins","Fatigue"], "tips": [
+    "Schedule first trimester scan",
+    "Continue prenatal supplements",
+    "Start planning healthy routines"]},
+
+  {"weekNumber":13,"babySizeCm":7.4,"symptoms":["Energy levels may improve","Reduced nausea","Increased appetite"],"tips": [
+    "Begin light prenatal exercises",
+    "Maintain healthy weight gain",
+    "Increase calcium intake"]},
+  {"weekNumber":14,"babySizeCm":8.7,"symptoms":["Round ligament pain","Brighter or glowing skin (increased blood flow)","Nasal congestion"],"tips": [
+    "Practice good posture",
+    "Moisturize skin regularly",
+    "Stay hydrated"]},
+  {"weekNumber":15,"babySizeCm":10.1,"symptoms":["Growing belly","Mild backache","Changes in skin appearance"],"tips": [
+    "Do pelvic floor exercises",
+    "Wear supportive footwear",
+    "Continue balanced diet"]},
+  {"weekNumber":16,"babySizeCm":11.6,"symptoms":["Possible quickening (first baby movements)","Back pain","Increased oiliness of skin"],"tips": [
+    "Monitor baby movements",
+    "Practice prenatal yoga",
+    "Attend scheduled scans"]},
+  {"weekNumber":17,"babySizeCm":13.0,"symptoms":["Increased appetite","Stretch marks","Mild acne"], "tips": [
+    "Increase protein intake",
+    "Stretch gently",
+    "Avoid prolonged standing"]},
+  {"weekNumber":18,"babySizeCm":14.2,"symptoms":["Baby movements felt clearly","Leg cramps","Brighter skin (pregnancy glow)"],"tips": [
+    "Maintain hydration",
+    "Improve sleeping posture",
+    "Take short walks daily"]},
+  {"weekNumber":19,"babySizeCm":15.3,"symptoms":["Backache","Skin darkening","Nasal stuffiness"], "tips": [
+    "Moisturize to reduce stretch marks",
+    "Practice relaxation breathing",
+    "Monitor weight gain"]},
+  {"weekNumber":20,"babySizeCm":25.6,"symptoms":["Stronger fetal movement","Mild swelling"],"tips": [
+    "Attend anomaly scan",
+    "Maintain iron-rich diet",
+    "Stay active"]},
+  {"weekNumber":21,"babySizeCm":26.7,"symptoms":["Braxton Hicks contractions","Heartburn","Increased vaginal discharge"],"tips": [
+    "Elevate legs to reduce swelling",
+    "Sleep on your side",
+    "Wear loose clothing"
+  ]},
+  {"weekNumber":22,"babySizeCm":27.8,"symptoms":["Back pain","Stretch marks"],"tips": [
+    "Practice prenatal stretches",
+    "Increase fiber intake",
+    "Avoid dehydration"]},
+  {"weekNumber":23,"babySizeCm":28.9,"symptoms":["Swelling of feet","Fatigue"],"tips": [
+    "Monitor baby kicks",
+    "Take breaks during work",
+    "Use pillows for back support"]},
+  {"weekNumber":24,"babySizeCm":30.0,"symptoms":["Leg cramps","Increased discharge","Mild pelvic discomfort"],"tips": [
+    "Discuss glucose screening test",
+    "Eat smaller frequent meals",
+    "Continue moderate activity"]},
+  {"weekNumber":25,"babySizeCm":34.6,"symptoms":["Hemorrhoids","Heartburn","Sleep disturbances"],"tips": [
+    "Maintain proper posture",
+    "Elevate legs",
+    "Prepare for childbirth classes"]},
+  {"weekNumber":26,"babySizeCm":35.6,"symptoms":["Sleep disturbances","Back pain"],"tips": [
+    "Continue iron and calcium supplements",
+    "Practice breathing exercises",
+    "Reduce stress levels"
+  ]},
+
+  {"weekNumber":27,"babySizeCm":36.6,"symptoms":["Shortness of breath","Swelling"],"tips": [
+    "Sleep on your left side",
+    "Monitor swelling",
+    "Stay hydrated"]},
+  {"weekNumber":28,"babySizeCm":37.6,"symptoms":["Braxton Hicks","Leg cramps","Fatigue"], "tips": [
+    "Track baby movements daily",
+    "Attend prenatal appointments",
+    "Elevate legs when resting"]},
+  {"weekNumber":29,"babySizeCm":38.6,"symptoms":["Frequent urination","Back pain"],"tips": [
+    "Use pillows for support while sleeping",
+    "Practice light stretching",
+    "Avoid standing for long hours"]},
+  {"weekNumber":30,"babySizeCm":39.9,"symptoms":["Sleep difficulty","Heartburn","Shortness of breath"], "tips": [
+    "Prepare hospital bag",
+    "Review birth plan",
+    "Maintain iron intake"]},
+  {"weekNumber":31,"babySizeCm":41.1,"symptoms":["Pelvic pressure","Swollen ankles","Mild contractions"],"tips": [
+    "Monitor contraction patterns",
+    "Keep emergency contacts ready",
+    "Rest frequently"]},
+  {"weekNumber":32,"babySizeCm":42.4,"symptoms":["Shortness of breath","Braxton Hicks contractions"],"tips": [
+    "Attend growth scan if scheduled",
+    "Practice breathing exercises",
+    "Stay calm and relaxed"]},
+  {"weekNumber":33,"babySizeCm":43.7,"symptoms":["Back pain","Increased vaginal discharge"], "tips": [
+    "Pack essentials for hospital",
+    "Reduce heavy activities",
+    "Sleep early"]},
+  {"weekNumber":34,"babySizeCm":45.0,"symptoms":["Pelvic heaviness","Fatigue"], "tips": [
+    "Monitor pelvic pressure",
+    "Avoid heavy lifting",
+    "Stay hydrated"]},
+  {"weekNumber":35,"babySizeCm":46.2,"symptoms":["Sleep problems","Braxton Hicks"],"tips": [
+    "Prepare hospital documents",
+    "Discuss delivery options",
+    "Rest adequately"]},
+  {"weekNumber":36,"babySizeCm":47.4,"symptoms":["Lightening (baby dropping lower)", "Increased pelvic pressure", "Irregular contractions"], "tips": [
+    "Track contraction timing",
+    "Keep hospital bag ready",
+    "Review emergency signs"
+  ],
+    "important": "Contact your healthcare provider if contractions become regular or your water breaks."},
+  {"weekNumber":37,"babySizeCm":48.6,"symptoms":["Irregular contractions","Increased pelvic discomfort","Mucus plug discharge"],"tips": [
+    "Monitor baby movements daily",
+    "Rest frequently",
+    "Stay close to your hospital"
+  ],
+    "important": "Seek medical attention if you notice reduced baby movements or fluid leakage."
+  },
+  {"weekNumber":38,"babySizeCm":49.8,"symptoms":["Irregular contractions","Backache","Increased vaginal discharge"], "tips": [
+    "Stay calm and hydrated",
+    "Time contractions if they begin",
+    "Follow your birth plan"]},
+  {"weekNumber":39,"babySizeCm":50.7,"symptoms":["Fatigue","Pelvic discomfort","Stronger contractions"],"tips": [
+    "Prepare mentally for delivery",
+    "Keep hospital contact ready",
+    "Rest as much as possible"]},
+  {"weekNumber":40,"babySizeCm":51.2,"symptoms":["Labor signs","Regular and Strong contractions","Lower back pain"], "tips": [
+    "Time contractions carefully",
+    "Stay relaxed",
+    "Follow medical advice"
+  ],
+    "important": "Go to the hospital if contractions are 5 minutes apart and lasting 1 minute for at least 1 hour."
+  }
+]

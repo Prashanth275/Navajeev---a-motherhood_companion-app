@@ -1,4 +1,4 @@
-enum UserStage { pregnancy, postpartum }
+enum UserStage { onboarding, pregnancy, postpartum }
 
 enum ParentRole { mother, partner, caregiver }
 
@@ -18,10 +18,10 @@ class BabyDetails {
   final String name;
   final DateTime dateOfBirth;
   final BabyGender gender;
-  final double? birthHeight; // in cm
-  final double? birthWeight; // in kg
-  final String? deliveryType; // e.g., Normal, C-Section
-  final String? feedingType; // e.g., Breastfed, Formula, Mixed
+  final double? birthHeight;
+  final double? birthWeight;
+  final String? deliveryType;
+  final String? feedingType;
 
   BabyDetails({
     required this.name,
@@ -36,21 +36,31 @@ class BabyDetails {
 
 class UserModel {
   final String id;
-  final String name; // Parent name
+  final String name;
   final ParentRole role;
   final UserStage stage;
+
+  /// NEW (for new schema)
+  final String? activeBabyId;
+
+  /// Optional details
   final PregnancyDetails? pregnancyDetails;
   final BabyDetails? babyDetails;
 
   UserModel({
     required this.id,
     required this.name,
-    this.role = ParentRole.mother, // Default to mother
+    this.role = ParentRole.mother,
     required this.stage,
+    this.activeBabyId,
     this.pregnancyDetails,
     this.babyDetails,
   });
 
+  // Derived helpers
   bool get isPregnancy => stage == UserStage.pregnancy;
   bool get isPostpartum => stage == UserStage.postpartum;
+
+  ///  Used by vaccine tracker
+  DateTime? get babyDob => babyDetails?.dateOfBirth;
 }

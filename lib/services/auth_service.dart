@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-
 import 'package:navajeev_m/models/user_model.dart';
-import 'package:navajeev_m/models/vaccine_model.dart';
+import '../models/appointment_model.dart';
+import '../models/vaccine_model.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -15,54 +15,110 @@ class AuthService extends ChangeNotifier {
   UserModel? _currentUser;
   bool _isLoading = true;
 
-  // ─────────────────────────────────────────
-  // Getters
-  // ─────────────────────────────────────────
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _firebaseUser != null;
-  bool get isProfileComplete => _currentUser != null;
   UserModel? get currentUser => _currentUser;
+  bool get isProfileComplete {
+    if (_currentUser == null) return false;
 
-  // ─────────────────────────────────────────
-  // Constructor
-  // ─────────────────────────────────────────
+    if (_currentUser!.stage == UserStage.onboarding) {
+      return false;
+    }
+
+    // Pregnancy user -> profile complete
+    if (_currentUser!.stage == UserStage.pregnancy) {
+      return true;
+    }
+
+    // Postpartum user-> must have active baby
+    if (_currentUser!.stage == UserStage.postpartum) {
+      return _currentUser!.activeBabyId != null;
+    }
+
+    return false;
+  }
+
   AuthService() {
     _auth.authStateChanges().listen(_onAuthStateChanged);
   }
 
-  // ─────────────────────────────────────────
-  // 🔁 Auth state listener
-  // ─────────────────────────────────────────
   Future<void> _onAuthStateChanged(User? user) async {
-    _firebaseUser = user;
-    _currentUser = null;
-
-    if (user != null) {
-      final doc =
-      await _db.collection('users').doc(user.uid).get();
-
-      if (doc.exists) {
-        _currentUser = _fromFirestore(doc);
-      }
+    // Case 1: Logged out
+    if (user == null) {
+      _firebaseUser = null;
+      _currentUser = null;
+      _isLoading = false;
+      notifyListeners();
+      return;
     }
 
-    _isLoading = false;
-    notifyListeners();
+    // Case 2: Logged in (first time only)
+    if (_firebaseUser?.uid != user.uid || _currentUser == null) {
+      _firebaseUser = user;
+      _isLoading = true;
+      notifyListeners();
+
+      final doc = await _db.collection('users').doc(user.uid).get();
+
+      if (doc.exists) {
+        var userModel = _fromFirestore(doc);
+
+        // load baby once if postpartum
+        if (userModel.stage == UserStage.postpartum &&
+            userModel.activeBabyId != null) {
+          final baby = await _fetchBaby(userModel.activeBabyId!);
+          userModel = UserModel(
+            id: userModel.id,
+            name: userModel.name,
+            role: userModel.role,
+            stage: userModel.stage,
+            activeBabyId: userModel.activeBabyId,
+            pregnancyDetails: userModel.pregnancyDetails,
+            babyDetails: baby,
+          );
+        }
+
+        _currentUser = userModel;
+      }
+
+      _isLoading = false;
+      notifyListeners();
+    }
+
+    // ELSE: ignore rebuilds
   }
 
-  // ─────────────────────────────────────────
-  // 🔐 Register
-  // ─────────────────────────────────────────
+  Future<BabyDetails?> _fetchBaby(String babyId) async {
+    final doc = await _db.collection('babies').doc(babyId).get();
+    if (!doc.exists) return null;
+
+    final data = doc.data()!;
+    return BabyDetails(
+      name: data['name'],
+      dateOfBirth: DateTime.parse(data['dob']),
+      gender: BabyGender.values.byName(data['gender']),
+      birthHeight: data['birthHeight'],
+      birthWeight: data['birthWeight'],
+      deliveryType: data['deliveryType'],
+      feedingType: data['feedingType'],
+    );
+  }
+  // Auth
   Future<void> signUp(String email, String password) async {
-    await _auth.createUserWithEmailAndPassword(
+    final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
+
+    final uid = cred.user!.uid;
+
+    //Explicit onboarding stage
+    await _db.collection('users').doc(uid).set({
+      'stage': UserStage.onboarding.name,
+      'created_at': FieldValue.serverTimestamp(),
+    });
   }
 
-  // ─────────────────────────────────────────
-  // 🔐 Login
-  // ─────────────────────────────────────────
   Future<void> signIn(String email, String password) async {
     await _auth.signInWithEmailAndPassword(
       email: email,
@@ -70,170 +126,227 @@ class AuthService extends ChangeNotifier {
     );
   }
 
-  // ─────────────────────────────────────────
-  // 🚪 Logout
-  // ─────────────────────────────────────────
   Future<void> signOut() async {
     await _auth.signOut();
+    _currentUser = null;
+    notifyListeners();
   }
-
-  // ─────────────────────────────────────────
-  // 💾 Save profile (after setup)
-  Future<void> saveProfile(UserModel user) async {
+// PREGNANCY: Save USER only
+  Future<void> savePregnancyProfile({
+    required String parentName,
+    required ParentRole role,
+    required PregnancyDetails pregnancy,
+  }) async {
     if (_firebaseUser == null) return;
 
-    await _db.collection('users').doc(_firebaseUser!.uid).set({
-      'name': user.name,
-      'role': user.role.name,
-      'stage': user.stage.name,
-      'pregnancy': user.pregnancyDetails == null
-          ? null
-          : {
-        'edd':
-        user.pregnancyDetails!.expectedDueDate.toIso8601String(),
+    final uid = _firebaseUser!.uid;
+
+    await _db.collection('users').doc(uid).set({
+      'name': parentName,
+      'role': role.name,
+      'stage': UserStage.pregnancy.name,
+      'pregnancy': {
+        'edd': pregnancy.expectedDueDate.toIso8601String(),
+        'enable_notifications': pregnancy.enableNotifications,
       },
-      'baby': user.babyDetails == null
-          ? null
-          : {
-        'name': user.babyDetails!.name,
-        'dob':
-        user.babyDetails!.dateOfBirth.toIso8601String(),
-        'gender': user.babyDetails!.gender.name,
-      },
+      'created_at': FieldValue.serverTimestamp(),
     });
 
-    _currentUser = user;
-
-    // 🔥 Seed vaccines ONLY after profile completion
-    await seedVaccinationsIfNeeded();
-
+    //UPDATE LOCAL STATE IMMEDIATELY
+    _currentUser = UserModel(
+      id: uid,
+      name: parentName,
+      role: role,
+      stage: UserStage.pregnancy,
+      pregnancyDetails: pregnancy,
+    );
+    _isLoading = false;
     notifyListeners();
   }
 
-  // ─────────────────────────────────────────
-  // 💉 Seed vaccination schedule (ONLY ONCE)
-  // ─────────────────────────────────────────
-  Future<void> seedVaccinationsIfNeeded() async {
-    if (_firebaseUser == null || _currentUser?.babyDetails == null) return;
+// POSTPARTUM: Save USER + BABY
+  Future<void> savePostpartumProfile({
+    required String parentName,
+    required ParentRole role,
+    required BabyDetails baby,
+  }) async {
+    if (_firebaseUser == null) return;
 
     final uid = _firebaseUser!.uid;
-    final vaccinesRef =
-    _db.collection('users').doc(uid).collection('vaccinations');
+    final babyRef = _db.collection('babies').doc();
 
-    // Prevent duplicate seeding
+    // 1.Save baby
+    await babyRef.set({
+      'name': baby.name,
+      'dob': baby.dateOfBirth.toIso8601String(),
+      'gender': baby.gender.name,
+      'parent_uids': [uid],
+      'created_at': FieldValue.serverTimestamp(),
+      'active': true,
+    });
+
+    // 2.Save user
+    await _db.collection('users').doc(uid).set({
+      'name': parentName,
+      'role': role.name,
+      'stage': UserStage.postpartum.name,
+      'active_baby_id': babyRef.id,
+      'created_at': FieldValue.serverTimestamp(),
+    });
+
+    // 3.Seed vaccinations
+    await seedVaccinationsForBaby(babyRef.id);
+
+// UPDATE LOCAL STATE
+    _currentUser = UserModel(
+      id: uid,
+      name: parentName,
+      role: role,
+      stage: UserStage.postpartum,
+      activeBabyId: babyRef.id,
+      babyDetails: baby,
+    );
+    _isLoading = false;
+    notifyListeners();
+  }
+  // Get active baby id
+  Future<String?> getActiveBabyId() async {
+    if (_firebaseUser == null) return null;
+
+    final doc =
+    await _db.collection('users').doc(_firebaseUser!.uid).get();
+
+    if (!doc.exists) return null;
+
+    return doc.data()?['active_baby_id'];
+  }
+
+  // Seed vaccinations
+  Future<void> seedVaccinationsForBaby(String babyId) async {
+    final vaccinesRef =
+    _db.collection('babies').doc(babyId).collection('vaccinations');
+
     final existing = await vaccinesRef.limit(1).get();
     if (existing.docs.isNotEmpty) return;
 
-    // Load WHO vaccine schedule
     final jsonString =
     await rootBundle.loadString('assets/vaccines/who_vaccines.json');
 
-    final List<dynamic> jsonList = json.decode(jsonString);
+    final List list = json.decode(jsonString);
 
-    final batch = _db.batch();
-
-    for (final item in jsonList) {
-      final String id = item['id'];
-
-      batch.set(
-        vaccinesRef.doc(id),
-        {
-          'name': item['name'],
-          'milestone': item['milestone'],
-          'targetDaysFromBirth': item['targetDaysFromBirth'],
-          'description': item['description'],
-          'protection': item['protection'],
-          'route': item['route'],
-          'sideEffects': item['sideEffects'],
-          'care': item['care'],
-          'actualDate': null,
-          'notes': null,
-        },
-      );
+    for (final v in list) {
+      await vaccinesRef.doc(v['id']).set({
+        'name': v['name'],
+        'milestone': v['milestone'],
+        'targetDaysFromBirth': v['targetDaysFromBirth'],
+        'description': v['description'],
+        'protection': v['protection'],
+        'sideEffects': v['sideEffects'],
+        'care': v['care'],
+        'actualDate': null,
+        'notes': null,
+      });
     }
-
-    await batch.commit();
   }
-
-  // ─────────────────────────────────────────
-  // 🔄 Get vaccines (REAL-TIME STREAM)
-  // ─────────────────────────────────────────
-  Stream<List<Vaccine>> getVaccinations() {
-    if (_firebaseUser == null) return const Stream.empty();
-
+  Stream<List<Vaccine>> getVaccinationsForBaby(String babyId) {
     return _db
-        .collection('users')
-        .doc(_firebaseUser!.uid)
+        .collection('babies')
+        .doc(babyId)
         .collection('vaccinations')
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
           .map(
-            (doc) =>
-            Vaccine.fromFirestore(doc.id, doc.data()),
+            (doc) => Vaccine.fromFirestore(doc.id, doc.data()),
       )
           .toList();
     });
   }
 
-  // ─────────────────────────────────────────
-  // 💾 Update vaccine (actual date / notes)
-  // ─────────────────────────────────────────
-  Future<void> updateVaccine(Vaccine v) async {
-    if (_firebaseUser == null) return;
-
+  Future<void> markVaccinationGiven({
+    required String babyId,
+    required String vaccineId,
+    required DateTime actualDate,
+  }) async {
     await _db
-        .collection('users')
-        .doc(_firebaseUser!.uid)
+        .collection('babies')
+        .doc(babyId)
         .collection('vaccinations')
-        .doc(v.id)
+        .doc(vaccineId)
         .update({
-      'actualDate': v.actualDate?.toIso8601String(),
-      'notes': v.notes,
+      'actualDate': actualDate.toIso8601String(),
     });
   }
 
-  // ─────────────────────────────────────────
-  // 🔄 Firestore → UserModel
-  // ─────────────────────────────────────────
+  // APPOINTMENTS (NEW)
+  Stream<List<Appointment>> getAppointments(String? babyId) {
+    if (_firebaseUser == null) return Stream.value([]);
+
+    final collectionPath = babyId != null
+        ? _db.collection('babies').doc(babyId).collection('appointments')
+        : _db.collection('users').doc(_firebaseUser!.uid).collection('appointments');
+
+    return collectionPath
+        .orderBy('scheduledAt', descending: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) => Appointment.fromFirestore(doc.id, doc.data()))
+        .toList());
+  }
+
+  //Save a new appointment
+  Future<void> addAppointment(Appointment appointment, String? babyId) async {
+    if (_firebaseUser == null) return;
+
+    final collectionPath = babyId != null
+        ? _db.collection('babies').doc(babyId).collection('appointments')
+        : _db.collection('users').doc(_firebaseUser!.uid).collection('appointments');
+
+    await collectionPath.add(appointment.toFirestore());
+  }
+
+  Future<void> toggleAppointmentStatus(String appointmentId, bool currentStatus, String? babyId) async {
+    if (_firebaseUser == null) return;
+
+    final docPath = babyId != null
+        ? _db.collection('babies').doc(babyId).collection('appointments').doc(appointmentId)
+        : _db.collection('users').doc(_firebaseUser!.uid).collection('appointments').doc(appointmentId);
+
+    await docPath.update({'isCompleted': !currentStatus});
+  }
+
+  // Delete an appointment
+  Future<void> deleteAppointment(String appointmentId, String? babyId) async {
+    final docPath = babyId != null
+        ? _db.collection('babies').doc(babyId).collection('appointments').doc(appointmentId)
+        : _db.collection('users').doc(_firebaseUser!.uid).collection('appointments').doc(appointmentId);
+
+    await docPath.delete();
+  }
+
+  // Firestore → UserModel
   UserModel _fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
     PregnancyDetails? pregnancy;
-    BabyDetails? baby;
-
     if (data['pregnancy'] != null) {
+      final p = data['pregnancy'];
       pregnancy = PregnancyDetails(
-        expectedDueDate:
-        DateTime.parse(data['pregnancy']['edd']),
-      );
-    }
-
-    if (data['baby'] != null) {
-      baby = BabyDetails(
-        name: data['baby']['name'],
-        dateOfBirth:
-        DateTime.parse(data['baby']['dob']),
-        gender: BabyGender.values.byName(
-          data['baby']['gender'],
-        ),
-        birthHeight: data['baby']['birthHeight'],
-        birthWeight: data['baby']['birthWeight'],
-        deliveryType: data['baby']['deliveryType'],
-        feedingType: data['baby']['feedingType'],
+        expectedDueDate: DateTime.parse(p['edd']),
+        enableNotifications: p['enable_notifications'] ?? true,
       );
     }
 
     return UserModel(
       id: doc.id,
-      name: data['name'],
-      role: ParentRole.values.byName(data['role']),
+      name: data['name'] ?? '',
+      role: ParentRole.values.byName(data['role'] ?? 'mother'),
       stage: UserStage.values.byName(data['stage']),
+      activeBabyId: data['active_baby_id'],
       pregnancyDetails: pregnancy,
-      babyDetails: baby,
     );
   }
+
+
 }
 
-// 🌍 Global instance
-final authService = AuthService();

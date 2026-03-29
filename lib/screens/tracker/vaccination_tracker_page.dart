@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../providers/vaccine_providers.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/vaccine_card.dart';
+import '../../widgets/vaccine_widgets/vaccine_card.dart';
 import '../../theme/app_colors.dart';
 import '../../models/vaccine_model.dart';
 
@@ -15,48 +14,50 @@ class VaccinationTrackerPage extends StatefulWidget {
       _VaccinationTrackerPageState();
 }
 
-class _VaccinationTrackerPageState
-    extends State<VaccinationTrackerPage> {
+class _VaccinationTrackerPageState extends State<VaccinationTrackerPage> {
   bool _initialized = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
     if (_initialized) return;
 
-    final user = authService.currentUser;
-    if (user?.babyDetails != null) {
-      final provider =
-      Provider.of<VaccineProvider>(context, listen: false);
+    final auth = context.read<AuthService>();
+    final user = auth.currentUser;
+    if (user == null) return;
 
-      provider.initializeWithDob(
-        user!.babyDetails!.dateOfBirth,
+    final babyId = user.activeBabyId;
+    final babyDob = user.babyDob;
+
+    if (babyId != null && babyDob != null) {
+      context.read<VaccineProvider>().initialize(
+        babyId: babyId,
+        babyDob: babyDob,
       );
-
       _initialized = true;
     }
   }
 
-  Future<void> _markAsDone(String id) async {
+  Future<void> _markAsDone(String vaccineId) async {
     final provider =
     Provider.of<VaccineProvider>(context, listen: false);
 
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate:
-      provider.dob ?? DateTime.now().subtract(const Duration(days: 365)),
+      firstDate: DateTime(2020),
       lastDate: DateTime.now(),
     );
 
     if (pickedDate != null && mounted) {
-      await provider.markAsDone(id, pickedDate);
+      await provider.markAsDone(vaccineId, pickedDate);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthService>();
+    final user = auth.currentUser;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Vaccination Tracker'),
@@ -69,40 +70,29 @@ class _VaccinationTrackerPageState
         ),
       ),
       body: Consumer<VaccineProvider>(
-        builder: (context, provider, child) {
+        builder: (context, provider, _) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final dob = provider.dob;
-
-          if (dob == null) {
-            return const Center(child: Text('Baby DOB not available'));
-          }
-
-          final upcomingVaccines = provider.vaccines
-              .where((v) => v.getStatus(dob) != VaccineStatus.done)
-              .toList()
-            ..sort(
-                  (a, b) => a
-                  .getDueDate(dob)
-                  .compareTo(b.getDueDate(dob)),
-            );
-
-          final completedVaccines = provider.vaccines
-              .where((v) => v.getStatus(dob) == VaccineStatus.done)
+          final vaccines = provider.vaccines;
+          final upcoming = vaccines
+              .where((v) => v.actualDate == null)
               .toList();
 
+          final completed = vaccines
+              .where((v) => v.actualDate != null)
+              .toList();
 
           Vaccine? nextDue;
-          List<Vaccine> remainingUpcoming = [];
+          List<Vaccine> remaining = [];
 
-          if (upcomingVaccines.isNotEmpty) {
-            nextDue = upcomingVaccines.first;
-            if (upcomingVaccines.length > 1) {
-              remainingUpcoming = upcomingVaccines.sublist(1);
-            }
+          if (upcoming.isNotEmpty) {
+            nextDue = provider.nextUpcomingVaccine;
+            remaining = upcoming.where((v) => v != nextDue).toList();
           }
+
+          final babyDob = user!.babyDob!;
 
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -110,24 +100,22 @@ class _VaccinationTrackerPageState
               _buildProgressBar(provider),
               const SizedBox(height: 24),
 
-              // Next Due (Featured)
               if (nextDue != null) ...[
                 VaccineCard(
                   vaccine: nextDue,
-                  babyDob: provider.dob!,
+                  babyDob: babyDob,
                   onMarkAsDone: () => _markAsDone(nextDue!.id),
                   style: VaccineCardStyle.featured,
                 ),
-
                 const SizedBox(height: 16),
               ],
 
               // Upcoming
-              if (remainingUpcoming.isNotEmpty) ...[
+              if (remaining.isNotEmpty) ...[
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
                   child: Text(
-                    "Upcoming Vaccines",
+                    'Upcoming Vaccines',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -135,10 +123,10 @@ class _VaccinationTrackerPageState
                     ),
                   ),
                 ),
-                ...remainingUpcoming.map(
+                ...remaining.map(
                       (v) => VaccineCard(
                     vaccine: v,
-                    babyDob: provider.dob!,
+                    babyDob: babyDob,
                     onMarkAsDone: () => _markAsDone(v.id),
                     style: VaccineCardStyle.list,
                   ),
@@ -146,12 +134,12 @@ class _VaccinationTrackerPageState
               ],
 
               // Completed
-              if (completedVaccines.isNotEmpty) ...[
+              if (completed.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
                   child: Text(
-                    "Completed Vaccines ✓",
+                    'Completed Vaccines ✓',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -159,10 +147,10 @@ class _VaccinationTrackerPageState
                     ),
                   ),
                 ),
-                ...completedVaccines.map(
+                ...completed.map(
                       (v) => VaccineCard(
                     vaccine: v,
-                    babyDob: provider.dob!,
+                    babyDob: babyDob,
                     onMarkAsDone: () {},
                     style: VaccineCardStyle.completed,
                   ),
@@ -217,20 +205,16 @@ class _VaccinationTrackerPageState
           Row(
             children: [
               Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: total == 0 ? 0 : completed / total,
-                    backgroundColor: const Color(0xFFF0F0F0),
-                    color:
-                    AppColors.success.withValues(alpha: 0.7),
-                    minHeight: 6,
-                  ),
+                child: LinearProgressIndicator(
+                  value: total == 0 ? 0 : completed / total,
+                  backgroundColor: const Color(0xFFF0F0F0),
+                  color: AppColors.success.withValues(alpha: 0.7),
+                  minHeight: 6,
                 ),
               ),
               const SizedBox(width: 16),
               Text(
-                '$percent% completed',
+                '$percent%',
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 12,

@@ -1,28 +1,44 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import '../../theme/app_colors.dart';
 
-class AppHeader extends StatelessWidget implements PreferredSizeWidget {
+class AppHeader extends StatelessWidget
+    implements PreferredSizeWidget {
+
   final String title;
   final String? subtitle;
   final List<Widget>? actions;
+  final Widget? leading;
+  final LinearGradient? gradient;
 
   const AppHeader({
     super.key,
     required this.title,
     this.subtitle,
     this.actions,
+    this.leading,
+    this.gradient,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(gradient: AppColors.brandGradient),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      decoration: BoxDecoration(
+        gradient: gradient ?? AppColors.brandGradient,
+      ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+
+              if (leading != null) ...[
+                leading!,
+                const SizedBox(width: 16),
+              ],
+
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -36,6 +52,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
                     if (subtitle != null)
                       Text(
                         subtitle!,
@@ -47,7 +64,9 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                   ],
                 ),
               ),
-              if (actions != null) Row(children: actions!),
+
+              if (actions != null)
+                Row(children: actions!),
             ],
           ),
         ),
@@ -56,5 +75,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(subtitle != null ? 80 : 60);
+  Size get preferredSize =>
+      Size.fromHeight(subtitle != null ? 80 : 60);
 }

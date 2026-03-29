@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../widgets/primary_card.dart';
+import 'package:provider/provider.dart';
+import '../../widgets/app_widgets/primary_card.dart';
 import '../../services/auth_service.dart';
 
 class ProfilePage extends StatelessWidget {
-   ProfilePage({super.key});
+   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +39,7 @@ class ProfilePage extends StatelessWidget {
                     style: TextStyle(color: Colors.red),
                   ),
                   onTap: () async {
-                    await authService.signOut(); // 🔥 SAME INSTANCE
+                    await context.read<AuthService>().signOut();
                   },
                 ),
               ],

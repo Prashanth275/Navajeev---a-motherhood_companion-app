@@ -57,13 +57,13 @@ class _AddGrowthModalState extends State<AddGrowthModal> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _field(_weightCtrl, "Weight (kg)", Icons.monitor_weight)),
+                Expanded(child: _field(_weightCtrl, "Weight (kg)", Icons.monitor_weight, isRequired: true)),
                 const SizedBox(width: 12),
-                Expanded(child: _field(_lengthCtrl, "Height (cm)", Icons.height)),
+                Expanded(child: _field(_lengthCtrl, "Height (cm)", Icons.height, isRequired: true)),
               ],
             ),
             const SizedBox(height: 12),
-            _field(_headCtrl, "Head Circumference (cm - optional)", Icons.face),
+            _field(_headCtrl, "Head Circumference (cm - optional)", Icons.face, isRequired: false),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -83,7 +83,7 @@ class _AddGrowthModalState extends State<AddGrowthModal> {
     );
   }
 
-  Widget _field(TextEditingController controller, String label, IconData icon) {
+  Widget _field(TextEditingController controller, String label, IconData icon, {bool isRequired = false}) {
     return TextFormField(
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -92,6 +92,15 @@ class _AddGrowthModalState extends State<AddGrowthModal> {
         prefixIcon: Icon(icon, size: 20),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
+      validator: (v) {
+        if (isRequired && (v == null || v.trim().isEmpty)) {
+          return 'Required';
+        }
+        if (v != null && v.isNotEmpty && double.tryParse(v) == null) {
+          return 'Enter a valid number';
+        }
+        return null;
+      },
     );
   }
 

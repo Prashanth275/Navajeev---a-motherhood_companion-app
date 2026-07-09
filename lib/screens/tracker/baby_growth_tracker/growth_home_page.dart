@@ -80,10 +80,12 @@ class _GrowthHomePageState extends State<GrowthHomePage> {
                 BabyInfoCard(baby: baby, latestRecord: latest),
                 const SizedBox(height: 12),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: GrowthSummaryCard(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 450;
+
+                    final cards = [
+                      GrowthSummaryCard(
                         label: "Weight",
                         value: "${latest?.weightKg ?? '--'} kg",
                         trend: previous != null
@@ -92,10 +94,7 @@ class _GrowthHomePageState extends State<GrowthHomePage> {
                         iconColor: Colors.pink,
                         icon: Icons.monitor_weight_outlined,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: GrowthSummaryCard(
+                      GrowthSummaryCard(
                         label: "Height",
                         value: "${latest?.lengthCm ?? '--'} cm",
                         trend: previous != null
@@ -104,18 +103,39 @@ class _GrowthHomePageState extends State<GrowthHomePage> {
                         iconColor: Colors.blue,
                         icon: Icons.height,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: GrowthSummaryCard(
+                      GrowthSummaryCard(
                         label: "Head",
                         value: "${latest?.headCircumferenceCm ?? '--'} cm",
                         trend: latest != null ? "Updated" : "No data",
                         iconColor: Colors.purple,
                         icon: Icons.face_outlined,
                       ),
-                    ),
-                  ],
+                    ];
+
+                    return isNarrow
+                        ? SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            child: Row(
+                              children: cards.map((card) => Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: SizedBox(
+                                  width: 120,
+                                  child: card,
+                                ),
+                              )).toList(),
+                            ),
+                          )
+                        : Row(
+                            children: [
+                              Expanded(child: cards[0]),
+                              const SizedBox(width: 8),
+                              Expanded(child: cards[1]),
+                              const SizedBox(width: 8),
+                              Expanded(child: cards[2]),
+                            ],
+                          );
+                  },
                 ),
 
                 const SizedBox(height: 20),

@@ -165,163 +165,196 @@ class _FeedingHeaderCard extends StatelessWidget {
       child: Card(
         elevation: 4,
         shadowColor:
-        Colors.black.withOpacity(0.08),
+        Colors.black.withValues(alpha: 0.08),
         shape: RoundedRectangleBorder(
           borderRadius:
           BorderRadius.circular(24),
         ),
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              /// DATE + LOG BUTTON ROW
-              Row(
-                mainAxisAlignment:
-                MainAxisAlignment.spaceBetween,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 420;
+
+              final dateSelector = Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  IconButton(
+                    icon: const Icon(
+                        Icons.arrow_back_ios,
+                        size: 18),
+                    onPressed: () {
+                      provider.setSelectedDate(
+                        provider.selectedDate
+                            .subtract(const Duration(days: 1)),
+                      );
+                    },
+                  ),
                   Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(
-                            Icons.arrow_back_ios,
-                            size: 18),
-                        onPressed: () {
-                          provider.setSelectedDate(
-                            provider.selectedDate
-                                .subtract(const Duration(days: 1)),
-                          );
-                        },
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.calendar_today,
-                              size: 16),
-                          const SizedBox(width: 8),
-                          Text(
-                            _formatDate(
-                                provider.selectedDate),
-                            style: const TextStyle(
-                                fontWeight:
-                                FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 18),
-                        onPressed: provider.selectedDate
-                            .isBefore(DateTime.now())
-                            ? () {
-                          final nextDay =
-                          provider.selectedDate
-                              .add(const Duration(days: 1));
-                          if (!nextDay.isAfter(
-                              DateTime.now())) {
-                            provider
-                                .setSelectedDate(nextDay);
-                          }
-                        }
-                            : null,
+                      const Icon(Icons.calendar_today,
+                          size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        _formatDate(
+                            provider.selectedDate),
+                        style: const TextStyle(
+                            fontWeight:
+                            FontWeight.w600),
                       ),
                     ],
                   ),
+                  IconButton(
+                    icon: const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 18),
+                    onPressed: provider.selectedDate
+                        .isBefore(DateTime.now())
+                        ? () {
+                      final nextDay =
+                      provider.selectedDate
+                          .add(const Duration(days: 1));
+                      if (!nextDay.isAfter(
+                          DateTime.now())) {
+                        provider
+                            .setSelectedDate(nextDay);
+                      }
+                    }
+                        : null,
+                  ),
+                ],
+              );
 
-                  AnimatedOpacity(
-                    opacity:
-                    showLogButton ? 1 : 0,
-                    duration: const Duration(
-                        milliseconds: 250),
-                    child: isToday
-                        ? ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context)
-                            .push(
-                          MaterialPageRoute(
-                            builder: (_) =>
-                            const LogFeedingScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.add,
-                          size: 18),
-                      label: const Text("Log Feeding"),
-                      style:
-                      ElevatedButton.styleFrom(
-                        padding:
-                        const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
+              final logBtn = AnimatedOpacity(
+                opacity:
+                showLogButton ? 1 : 0,
+                duration: const Duration(
+                    milliseconds: 250),
+                child: isToday
+                    ? ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                        const LogFeedingScreen(),
                       ),
-                    )
-                        : const SizedBox.shrink(),
+                    );
+                  },
+                  icon: const Icon(Icons.add,
+                      size: 18),
+                  label: const Text("Log Feeding"),
+                  style:
+                  ElevatedButton.styleFrom(
+                    padding:
+                    const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                   ),
-                ],
-              ),
+                )
+                    : const SizedBox.shrink(),
+              );
 
-              const SizedBox(height: 20),
+              final summaryCardsList = [
+                _SummaryCard(
+                  icon: Icons.pregnant_woman,
+                  title: "Breast",
+                  value:
+                  "${provider.breastCount} feeds",
+                  color: AppColors.weight,
+                ),
+                _SummaryCard(
+                  icon: Icons.local_drink,
+                  title: "Bottle",
+                  value:
+                  "${provider.bottleCount} feeds • ${provider.totalBottleMl.toStringAsFixed(0)} ml",
+                  color: AppColors.feed,
+                ),
+                _SummaryCard(
+                  icon: Icons.restaurant,
+                  title: "Solid",
+                  value:
+                  "${provider.solidCount} meals",
+                  color: AppColors.mood,
+                ),
+              ];
 
-              /// SUMMARY CARDS
-              Row(
+              return Column(
                 children: [
-                  Expanded(
-                    child: _SummaryCard(
-                      icon: Icons.pregnant_woman,
-                      title: "Breast",
-                      value:
-                      "${provider.breastCount} feeds",
-                      color: AppColors.weight,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _SummaryCard(
-                      icon: Icons.local_drink,
-                      title: "Bottle",
-                      value:
-                      "${provider.bottleCount} feeds • ${provider.totalBottleMl.toStringAsFixed(0)} ml",
-                      color: AppColors.feed,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _SummaryCard(
-                      icon: Icons.restaurant,
-                      title: "Solid",
-                      value:
-                      "${provider.solidCount} meals",
-                      color: AppColors.mood,
-                    ),
+                  /// DATE + LOG BUTTON ROW / COLUMN
+                  isNarrow
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Center(child: dateSelector),
+                            const SizedBox(height: 12),
+                            Center(child: logBtn),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            dateSelector,
+                            logBtn,
+                          ],
+                        ),
+
+                  const SizedBox(height: 20),
+
+                  /// SUMMARY CARDS
+                  isNarrow
+                      ? SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          child: Row(
+                            children: summaryCardsList.map((card) => Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: SizedBox(
+                                width: 140,
+                                child: card,
+                              ),
+                            )).toList(),
+                          ),
+                        )
+                      : Row(
+                          children: [
+                            Expanded(child: summaryCardsList[0]),
+                            const SizedBox(width: 10),
+                            Expanded(child: summaryCardsList[1]),
+                            const SizedBox(width: 10),
+                            Expanded(child: summaryCardsList[2]),
+                          ],
+                        ),
+
+                  const SizedBox(height: 24),
+
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time,
+                        color:
+                        AppColors.primaryAccent,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        provider.lastFedText != null
+                            ? "Last fed: ${provider.lastFedText}"
+                            : "No feedings logged yet",
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(
+                            fontWeight:
+                            FontWeight.w600),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-
-              const SizedBox(height: 24),
-
-              Row(
-                children: [
-                  const Icon(
-                    Icons.access_time,
-                    color:
-                    AppColors.primaryAccent,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    provider.lastFedText != null
-                        ? "Last fed: ${provider.lastFedText}"
-                        : "No feedings logged yet",
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(
-                        fontWeight:
-                        FontWeight.w600),
-                  ),
-                ],
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
@@ -371,11 +404,11 @@ class _SummaryCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-            color: Colors.grey.withOpacity(0.08)),
+            color: Colors.grey.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
             color:
-            Colors.black.withOpacity(0.06),
+            Colors.black.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),

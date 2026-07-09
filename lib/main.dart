@@ -21,6 +21,7 @@ import 'services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'providers/ai_insight_provider.dart';
+import 'package:navajeev_m/screens/onboarding/animated_splash_screen.dart';
 
 
 
@@ -124,7 +125,7 @@ class MyApp extends StatelessWidget {
         title: 'Navajeev',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const Wrapper(),
+        home: const AnimatedSplashScreen(),
         routes: AppRoutes.routes,
       ),
     );

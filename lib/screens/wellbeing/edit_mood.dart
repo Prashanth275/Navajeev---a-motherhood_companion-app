@@ -291,6 +291,11 @@ class _MoodSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isNarrow = screenWidth < 385;
+    final double iconSize = isNarrow ? 24 : 32;
+    final double innerPadding = isNarrow ? 8 : 14;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(5, (index) {
@@ -304,11 +309,11 @@ class _MoodSelector extends StatelessWidget {
               onTap: () => onChanged(value),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(innerPadding),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: isSelected
-                      ? color.withOpacity(0.2)
+                      ? color.withValues(alpha: 0.2)
                       : Colors.transparent,
                   border: isSelected
                       ? Border.all(
@@ -318,7 +323,7 @@ class _MoodSelector extends StatelessWidget {
                 ),
                 child: Icon(
                   MoodConfig.getIcon(value),
-                  size: 32,
+                  size: iconSize,
                   color: isSelected ? color : Colors.grey[400],
                 ),
               ),
@@ -326,7 +331,7 @@ class _MoodSelector extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               MoodConfig.getLabel(value),
-              style: TextStyle(fontSize: 11,
+              style: TextStyle(fontSize: isNarrow ? 10 : 11,
                 color: isSelected ? color : AppColors.textMuted,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,),
             ),

@@ -33,10 +33,10 @@ class WellbeingScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // CUSTOM HEADER
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 450;
+                    final headerText = Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
                         Row(
@@ -62,8 +62,9 @@ class WellbeingScreen extends StatelessWidget {
                           ),
                         ),
                       ],
-                    ),
-                    ElevatedButton.icon(
+                    );
+
+                    final logButton = ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryAccent.withValues(alpha: 0.85),
                         foregroundColor: Colors.white,
@@ -83,8 +84,26 @@ class WellbeingScreen extends StatelessWidget {
                       },
                       icon: const Icon(Icons.add, size: 18),
                       label: const Text("Log Mood"),
-                    ),
-                  ],
+                    );
+
+                    return isNarrow
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              headerText,
+                              const SizedBox(height: 16),
+                              logButton,
+                            ],
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(child: headerText),
+                              const SizedBox(width: 16),
+                              logButton,
+                            ],
+                          );
+                  },
                 ),
 
                 const SizedBox(height: 32),

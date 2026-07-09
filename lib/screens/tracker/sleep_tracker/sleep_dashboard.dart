@@ -284,56 +284,81 @@ class _SleepDashboardState extends State<SleepDashboard> {
   }
 
   Widget _buildSummaryCards(BuildContext context, SleepProvider provider) {
-    if (provider.isMotherSelected) {
-      return Row(children: [
-        _buildCard(
-          context,
-          icon: Icons.access_time,
-          title: "Total",
-          value: _formatDuration(provider.todayTotal),
-          subtitle: "${provider.statusOrQuality} quality",
-        ),
-        const SizedBox(width: 12),
-        _buildCard(
-          context,
-          icon: Icons.nightlight_round,
-          title: "Night",
-          value: _formatDuration(provider.todayNight),
-          subtitle: "Last 24 hours",
-        ),
-        const SizedBox(width: 12),
-        _buildCard(
-          context,
-          icon: Icons.wb_sunny,
-          title: "Naps",
-          value: provider.todayNaps.toString(),
-          subtitle: "Last 24 hours",
-        ),
-      ]);
-    } else {
-      return Row(children: [
-        _buildCard(
-          context,
-          icon: Icons.access_time,
-          title: "Total",
-          value: _formatDuration(provider.todayTotal),
-        ),
-        const SizedBox(width: 12),
-        _buildCard(
-          context,
-          icon: Icons.wb_sunny,
-          title: "Naps",
-          value: provider.todayNaps.toString(),
-        ),
-        const SizedBox(width: 12),
-        _buildCard(
-          context,
-          icon: Icons.emoji_emotions_outlined,
-          title: "Status",
-          value: provider.statusOrQuality,
-        ),
-      ]);
-    }
+    final bool isMother = provider.isMotherSelected;
+
+    final cards = isMother
+        ? [
+            _buildCard(
+              context,
+              icon: Icons.access_time,
+              title: "Total",
+              value: _formatDuration(provider.todayTotal),
+              subtitle: "${provider.statusOrQuality} quality",
+            ),
+            _buildCard(
+              context,
+              icon: Icons.nightlight_round,
+              title: "Night",
+              value: _formatDuration(provider.todayNight),
+              subtitle: "Last 24 hours",
+            ),
+            _buildCard(
+              context,
+              icon: Icons.wb_sunny,
+              title: "Naps",
+              value: provider.todayNaps.toString(),
+              subtitle: "Last 24 hours",
+            ),
+          ]
+        : [
+            _buildCard(
+              context,
+              icon: Icons.access_time,
+              title: "Total",
+              value: _formatDuration(provider.todayTotal),
+            ),
+            _buildCard(
+              context,
+              icon: Icons.wb_sunny,
+              title: "Naps",
+              value: provider.todayNaps.toString(),
+            ),
+            _buildCard(
+              context,
+              icon: Icons.emoji_emotions_outlined,
+              title: "Status",
+              value: provider.statusOrQuality,
+            ),
+          ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 450;
+
+        return isNarrow
+            ? SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: cards.map((card) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: SizedBox(
+                      width: 120,
+                      child: card,
+                    ),
+                  )).toList(),
+                ),
+              )
+            : Row(
+                children: cards.map((card) => Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: card,
+                  ),
+                )).toList(),
+              );
+      },
+    );
   }
 
   Widget _buildCard(BuildContext context,
@@ -341,41 +366,39 @@ class _SleepDashboardState extends State<SleepDashboard> {
         required String title,
         required String value,
         String? subtitle}) {
-    return Expanded(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppColors.sleep.withOpacity(0.1),
-                child: Icon(icon, color: AppColors.sleep),
-              ),
-              const SizedBox(height: 12),
-              Text(title, style: Theme.of(context).textTheme.bodySmall),
-              const SizedBox(height: 4),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.sleep.withValues(alpha: 0.1),
+              child: Icon(icon, color: AppColors.sleep),
+            ),
+            const SizedBox(height: 12),
+            Text(title, style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(color: AppColors.sleep, fontSize: 18),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 6),
               Text(
-                value,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(color: AppColors.sleep, fontSize: 18),
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: _getQualityColor(subtitle),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: _getQualityColor(subtitle),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );

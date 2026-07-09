@@ -4,6 +4,7 @@ import 'package:navajeev_m/providers/Sleep/sleep_providers.dart';
 import 'package:navajeev_m/providers/chat_provider.dart';
 import 'package:navajeev_m/providers/feeding/feeding_provider.dart';
 import 'package:navajeev_m/providers/growth/growth_provider.dart';
+import 'package:navajeev_m/providers/profile_provider.dart';
 import 'package:navajeev_m/providers/trimester/trimester_provider.dart';
 import 'package:navajeev_m/providers/wellbeing/wellbeing_provider.dart';
 import 'package:navajeev_m/repositories/feeding/feeding_repository.dart';
@@ -19,6 +20,7 @@ import 'providers/vaccine_providers.dart';
 import 'services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'providers/ai_insight_provider.dart';
 
 
 
@@ -63,7 +65,6 @@ class MyApp extends StatelessWidget {
         Provider<FeedingRepository>(
           create: (_) => FeedingRepository(),
         ),
-
 
         ChangeNotifierProxyProvider<AuthService, FeedingProvider>(
           create: (context) => FeedingProvider(
@@ -115,6 +116,9 @@ class MyApp extends StatelessWidget {
             auth: auth,
           )..initialize(),
         ),
+        ChangeNotifierProvider(create: (_) => AiInsightProvider()),
+
+          ChangeNotifierProvider(create: (_) => ProfileProvider()),
       ],
       child: MaterialApp(
         title: 'Navajeev',

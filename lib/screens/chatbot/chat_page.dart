@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../providers/chat_provider.dart';
 import '../../models/chat_model.dart';
+import '../../models/chat_stage.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
-import 'package:navajeev_m/models/chat_stage.dart';
 import '../../widgets/app_widgets/typing_dots.dart';
 
 class ChatPage extends StatefulWidget {
@@ -17,12 +19,16 @@ class _ChatPageState extends State<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _controller = TextEditingController();
   bool _initialized = false;
+
+  // -------------------------------------------------------
+  // FAQ lists — shown before user sends first message
+  // -------------------------------------------------------
   final List<String> pregnancyFaq = [
     "What foods should I eat in the first trimester?",
     "Is it safe to exercise during pregnancy?",
     "How much weight gain is normal?",
     "What vitamins should I take during pregnancy?",
-    "How to reduce morning sickness?"
+    "How to reduce morning sickness?",
   ];
 
   final List<String> postpartumFaq = [
@@ -30,26 +36,111 @@ class _ChatPageState extends State<ChatPage> {
     "Why does my baby wake up at night?",
     "How long does postpartum recovery take?",
     "How to increase breast milk supply?",
-    "How to soothe a crying baby?"
+    "How to soothe a crying baby?",
   ];
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
     if (_initialized) return;
-
-    final chatProvider =
-    Provider.of<ChatProvider>(context, listen: false);
-
-    chatProvider.initialize(
-      ChatContext(
-        stage: 'postpartum',
-        babyAgeMonths: 3,
-      ),
-    );
-
     _initialized = true;
+    _initializeFromFirebase();
+  }
+
+  // -------------------------------------------------------
+  // Read real user data from Firebase and build ChatContext
+  // -------------------------------------------------------
+  Future<void> _initializeFromFirebase() async {
+    final chatProvider = context.read<ChatProvider>();
+
+    // Already initialized — don't overwrite
+    if (chatProvider.context != null) return;
+
+    try {
+      final authService = context.read<AuthService>();
+      final uid = authService.currentUser!.id;
+      final firestore = FirebaseFirestore.instance;
+
+      // Read user document
+      final userDoc =
+      await firestore.collection('users').doc(uid).get();
+      final userData = userDoc.data() ?? {};
+
+      final stage =
+          userData['stage']?.toString().toLowerCase() ?? 'postpartum';
+
+      // ---- PREGNANCY branch ----
+      if (stage == 'pregnancy') {
+        // Calculate trimester from expected due date
+        int? trimester;
+        final dueDateField = userData['expectedDueDate'];
+        if (dueDateField != null) {
+          final dueDate = dueDateField is Timestamp
+              ? dueDateField.toDate()
+              : DateTime.tryParse(dueDateField.toString());
+
+          if (dueDate != null) {
+            final weeksLeft =
+                dueDate.difference(DateTime.now()).inDays ~/ 7;
+            final weeksPregnant = 40 - weeksLeft;
+            if (weeksPregnant <= 12) trimester = 1;
+            else if (weeksPregnant <= 26) trimester = 2;
+            else trimester = 3;
+          }
+        }
+
+        chatProvider.initialize(ChatContext(
+          stage: 'pregnancy',
+          trimester: trimester,
+        ));
+        return;
+      }
+
+      // ---- POSTPARTUM branch ----
+      // Read baby details from babies collection
+      final babyId = userData['activeBabyId'] as String?;
+      int? babyAgeMonths;
+      String? babyName;
+      String? feedingType;
+      String? deliveryType;
+
+      if (babyId != null) {
+        final babyDoc =
+        await firestore.collection('babies').doc(babyId).get();
+        final babyData = babyDoc.data() ?? {};
+
+        babyName = babyData['name'] as String?;
+        feedingType = babyData['feedingType'] as String?;
+        deliveryType = babyData['deliveryType'] as String?;
+
+        final dobField = babyData['dob'];
+        if (dobField != null) {
+          final dob = dobField is Timestamp
+              ? dobField.toDate()
+              : DateTime.tryParse(dobField.toString());
+
+          if (dob != null) {
+            final now = DateTime.now();
+            babyAgeMonths =
+                (now.year - dob.year) * 12 + (now.month - dob.month);
+          }
+        }
+      }
+
+      chatProvider.initialize(ChatContext(
+        stage: 'postpartum',
+        babyAgeMonths: babyAgeMonths,
+        babyName: babyName,
+        feedingType: feedingType,
+        deliveryType: deliveryType,
+      ));
+    } catch (e) {
+      debugPrint('ChatPage Firebase init error: $e');
+      // Fallback — initialize with minimal context rather than crash
+      context.read<ChatProvider>().initialize(
+        ChatContext(stage: 'postpartum'),
+      );
+    }
   }
 
   @override
@@ -71,13 +162,16 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  // -------------------------------------------------------
+  // FAQ chips — now correctly reads real stage from provider
+  // -------------------------------------------------------
   Widget _buildFAQChips(ChatProvider chat) {
-    if (chat.messages.length > 1) return const SizedBox();
+    // Hide after first user message
+    if (chat.messages.length > 1) return const SizedBox.shrink();
 
-    final stage = chat.messages.isNotEmpty ? 'postpartum' : 'postpartum';
-
-    final questions =
-    stage == 'pregnant' ? pregnancyFaq : postpartumFaq;
+    // ✅ Reads real stage from provider — no more hardcoding
+    final isPregnancy = chat.context?.isPregnancy ?? false;
+    final questions = isPregnancy ? pregnancyFaq : postpartumFaq;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -86,9 +180,7 @@ class _ChatPageState extends State<ChatPage> {
         runSpacing: 8,
         children: questions.map((q) {
           return GestureDetector(
-            onTap: () {
-              chat.send(q);
-            },
+            onTap: () => chat.send(q),
             child: Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 14,
@@ -98,9 +190,7 @@ class _ChatPageState extends State<ChatPage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                ),
+                border: Border.all(color: Colors.grey.shade300),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.04),
@@ -123,6 +213,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ChatProvider>(
@@ -139,19 +230,15 @@ class _ChatPageState extends State<ChatPage> {
                 chat.messages.length + (chat.isTyping ? 1 : 0),
                 itemBuilder: (_, index) {
                   // Typing indicator
-                  if (chat.isTyping &&
-                      index == chat.messages.length) {
+                  if (chat.isTyping && index == chat.messages.length) {
                     return Align(
                       alignment: Alignment.centerLeft,
                       child: Container(
-                        margin:
-                        const EdgeInsets.only(bottom: 12),
-                        padding:
-                        const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
-                          borderRadius:
-                          BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(18),
                         ),
                         child: const TypingDots(),
                       ),
@@ -159,30 +246,24 @@ class _ChatPageState extends State<ChatPage> {
                   }
 
                   final msg = chat.messages[index];
-                  final isUser =
-                      msg.sender == ChatSender.user;
+                  final isUser = msg.sender == ChatSender.user;
 
                   return Align(
                     alignment: isUser
                         ? Alignment.centerRight
                         : Alignment.centerLeft,
                     child: Container(
-                      margin:
-                      const EdgeInsets.only(bottom: 12),
-                      padding:
-                      const EdgeInsets.all(14),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(14),
                       constraints: BoxConstraints(
                         maxWidth:
-                        MediaQuery.of(context)
-                            .size
-                            .width * 0.80,
+                        MediaQuery.of(context).size.width * 0.80,
                       ),
                       decoration: BoxDecoration(
                         color: isUser
                             ? AppColors.primaryAccent
                             : Colors.grey.shade100,
-                        borderRadius:
-                        BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(18),
                       ),
                       child: Text(
                         msg.text,
@@ -218,9 +299,8 @@ class _ChatPageState extends State<ChatPage> {
             Expanded(
               child: TextField(
                 controller: _controller,
-                decoration: const InputDecoration(
-                  hintText: "Ask anything...",
-                ),
+                decoration:
+                const InputDecoration(hintText: 'Ask anything...'),
               ),
             ),
             IconButton(

@@ -61,6 +61,5 @@ class UserModel {
   bool get isPregnancy => stage == UserStage.pregnancy;
   bool get isPostpartum => stage == UserStage.postpartum;
 
-  ///  Used by vaccine tracker
   DateTime? get babyDob => babyDetails?.dateOfBirth;
 }

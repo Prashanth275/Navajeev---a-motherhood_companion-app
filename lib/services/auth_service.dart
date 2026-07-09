@@ -278,6 +278,7 @@ class AuthService extends ChangeNotifier {
     });
   }
 
+
   // APPOINTMENTS (NEW)
   Stream<List<Appointment>> getAppointments(String? babyId) {
     if (_firebaseUser == null) return Stream.value([]);
@@ -324,6 +325,7 @@ class AuthService extends ChangeNotifier {
     await docPath.delete();
   }
 
+
   // Firestore → UserModel
   UserModel _fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -346,7 +348,46 @@ class AuthService extends ChangeNotifier {
       pregnancyDetails: pregnancy,
     );
   }
+  Future<void> reloadUser() async {
+    if (_firebaseUser == null) return;
 
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final doc =
+      await _db.collection('users').doc(_firebaseUser!.uid).get();
+
+      if (!doc.exists) return;
+
+      var userModel = _fromFirestore(doc);
+
+      // 🔥 FETCH BABY AGAIN IF POSTPARTUM
+      if (userModel.stage == UserStage.postpartum &&
+          userModel.activeBabyId != null) {
+        final baby = await _fetchBaby(userModel.activeBabyId!);
+
+        userModel = UserModel(
+          id: userModel.id,
+          name: userModel.name,
+          role: userModel.role,
+          stage: userModel.stage,
+          activeBabyId: userModel.activeBabyId,
+          pregnancyDetails: userModel.pregnancyDetails,
+          babyDetails: baby,
+        );
+      }
+
+      _currentUser = userModel;
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      print("❌ reloadUser error: $e");
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
 }
 

@@ -13,7 +13,6 @@ import '../../utils/reponsive.dart';
 import '../../widgets/app_widgets/bottom_nav.dart';
 import '../../widgets/home_page_widgets/home_dashboard.dart';
 import '../chatbot/chat_page.dart';
-import '../tracker/trackers_page.dart';
 import '../tracker/vaccination_tracker_page.dart';
 import '../wellbeing/wellbeing_page.dart';
 import '../profile/profile_page.dart';
@@ -58,7 +57,6 @@ class _HomePageState extends State<HomePage> {
         _NavConfig(title: 'Appointments', icon: Icons.calendar_today_outlined, page: const AppointmentsPage()),
         _NavConfig(title: 'Wellbeing', icon: Icons.favorite_border, page: const WellbeingScreen()),
         _NavConfig(title: 'Profile', icon: Icons.person_outline, page:  ProfilePage()), // 6 (Consistent index)
-        _NavConfig(title: 'Settings', icon: Icons.settings_outlined, page: const Center(child: Text('Settings Page'))),
       ];
     } else {
       return [
@@ -71,7 +69,6 @@ class _HomePageState extends State<HomePage> {
         _NavConfig(title: 'Appointments', icon: Icons.calendar_today_outlined, page: const AppointmentsPage()),
         _NavConfig(title: 'Wellbeing', icon: Icons.favorite_border, page: const WellbeingScreen()),
         _NavConfig(title: 'Profile', icon: Icons.person_outline, page: ProfilePage()), // 8 (Consistent index)
-        _NavConfig(title: 'Settings', icon: Icons.settings_outlined, page: const Center(child: Text('Settings Page'))),
       ];
     }
   }

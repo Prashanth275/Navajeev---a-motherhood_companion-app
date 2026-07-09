@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../theme/app_colors.dart';
 import 'package:navajeev_m/providers/Sleep/sleep_providers.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../providers/ai_insight_provider.dart';
 
 class SleepLogScreen extends StatefulWidget {
   const SleepLogScreen({super.key});
@@ -240,6 +242,10 @@ class _SleepLogScreenState extends State<SleepLogScreen> {
       end: _endTime!,
       isNight: _isNight,
     );
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      context.read<AiInsightProvider>().clearModule(user.uid, 'sleep');
+    }
 
     if (!mounted) return;
 

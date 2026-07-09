@@ -10,7 +10,6 @@ class SleepProvider extends ChangeNotifier {
   final AuthService auth;
   final FirebaseFirestore firestore;
 
-
   late SleepRepository _repository;
 
   List<SleepSession> _sessions = [];
@@ -20,19 +19,40 @@ class SleepProvider extends ChangeNotifier {
 
   bool get isPregnancyMode => _isPregnancyMode;
 
+  bool get isLoading => _isLoading;
+
+  bool get isMotherSelected => _isMotherSelected;
+
   StreamSubscription<List<SleepSession>>? _subscription;
 
-  SleepProvider({
-    required this.auth,
-    required this.firestore,
-  }) {
-    _init();
+  // 🔥 FIXED: store exact DOB
+  DateTime? _babyDob;
+
+  int get babyAgeMonths {
+    if (_babyDob == null) return 0;
+
+    final now = DateTime.now();
+
+    int months =
+        (now.year - _babyDob!.year) * 12 +
+            (now.month - _babyDob!.month);
+
+    // 🔥 adjust if day not completed
+    if (now.day < _babyDob!.day) {
+      months--;
+    }
+
+    return months;
   }
 
-  //GETTERS
-
-  bool get isLoading => _isLoading;
-  bool get isMotherSelected => _isMotherSelected;
+  // 🔥 NEW: accurate weeks
+  int get babyAgeWeeks {
+    if (_babyDob == null) return 0;
+    return DateTime
+        .now()
+        .difference(_babyDob!)
+        .inDays ~/ 7;
+  }
 
   Duration get todayTotal =>
       SleepAnalyzer.getTodayTotal(_sessions);
@@ -46,9 +66,7 @@ class SleepProvider extends ChangeNotifier {
   List<double> get weeklyHours =>
       SleepAnalyzer.getWeeklyHours(_sessions);
 
-  int _babyAgeMonths = 0;
-
-  int get babyAgeMonths => _babyAgeMonths;
+  List<SleepSession> get sessions => _sessions;
 
   String get statusOrQuality {
     if (_isMotherSelected) {
@@ -56,17 +74,27 @@ class SleepProvider extends ChangeNotifier {
     } else {
       return SleepAnalyzer.getBabyStatus(
         total: todayTotal,
-        ageMonths: _babyAgeMonths,
+        ageMonths: babyAgeMonths,
       );
     }
   }
 
-  //INIT
+  SleepProvider({
+    required this.auth,
+    required this.firestore,
+  }) {
+    _init();
+  }
+
+  // --------------------------------------------------
+  // INIT
+  // --------------------------------------------------
 
   Future<void> _init() async {
-    _subscription?.cancel();
+    await _subscription?.cancel();
 
     _isLoading = true;
+    _sessions = []; // 🔥 CLEAR OLD DATA (VERY IMPORTANT)
     notifyListeners();
 
     final uid = auth.currentUser!.id;
@@ -84,6 +112,7 @@ class SleepProvider extends ChangeNotifier {
       isMother: _isMotherSelected,
     );
 
+    // 🔥 LOAD BABY DOB ONLY IF BABY MODE
     if (!_isMotherSelected) {
       final babyId = await auth.getActiveBabyId();
 
@@ -95,48 +124,52 @@ class SleepProvider extends ChangeNotifier {
 
         final dobField = babyDoc.data()?['dob'];
 
-        DateTime dob;
-
         if (dobField is Timestamp) {
-          dob = dobField.toDate();
+          _babyDob = dobField.toDate();
         } else if (dobField is String) {
-          dob = DateTime.parse(dobField);
+          _babyDob = DateTime.parse(dobField);
         } else {
           throw Exception("Invalid DOB format");
         }
-
-        final now = DateTime.now();
-
-        _babyAgeMonths =
-            (now.year - dob.year) * 12 +
-                (now.month - dob.month);
       }
+    } else {
+      _babyDob = null; // 🔥 prevent mixing
     }
 
-
-    _subscription = _repository.streamSessions().listen((data) {
-      _sessions = data;
-      _isLoading = false;
-      notifyListeners();
-    },
+    _subscription = _repository.streamSessions().listen(
+          (data) {
+        _sessions = data; // 🔥 always fresh from correct repo
+        _isLoading = false;
+        notifyListeners();
+      },
       onError: (error) {
-        print("Sleep stream error: $error");
+        debugPrint("Sleep stream error: $error");
         _isLoading = false;
         notifyListeners();
       },
     );
   }
 
+  // --------------------------------------------------
   // TOGGLE
+  // --------------------------------------------------
 
   void toggleMode(bool isMother) {
     if (_isMotherSelected == isMother) return;
 
     _isMotherSelected = isMother;
+
+    // 🔥 FORCE RESET EVERYTHING
+    _subscription?.cancel();
+    _sessions = [];
+    _babyDob = null;
+
     _init();
   }
 
-  //ADD SESSION
+  // --------------------------------------------------
+  // ADD SESSION
+  // --------------------------------------------------
 
   Future<void> addSession({
     required DateTime start,
@@ -149,6 +182,7 @@ class SleepProvider extends ChangeNotifier {
       endTime: end,
       isNight: isNight,
     );
+
     await _repository.addSession(session);
   }
 

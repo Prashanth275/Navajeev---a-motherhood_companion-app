@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
+import 'appointment_sheet.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/appointment_model.dart';
@@ -51,6 +53,30 @@ class AppointmentTrackerView extends StatelessWidget {
           _buildSectionHeader("Past Appointments"),
           const SizedBox(height: 12),
           _buildAppointmentList(context, past, "No past appointments", isPast: true),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              onPressed: () => _showAddAppointmentSheet(context, babyId),
+              icon: const Icon(Icons.add_alert_rounded, color: Colors.white),
+              label: const Text(
+                "New Appointment",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -222,6 +248,18 @@ class AppointmentTrackerView extends StatelessWidget {
           Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         ])
       ]),
+    );
+  }
+
+  void _showAddAppointmentSheet(BuildContext context, String? babyId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) => AddAppointmentSheet(babyId: babyId),
     );
   }
 }

@@ -91,7 +91,7 @@ class TrimesterDynamicHeader extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: glowColor.withOpacity(0.25),
+            color: glowColor.withValues(alpha: 0.25),
             blurRadius: 15,
             spreadRadius: 2,
             offset: const Offset(0, 8),
@@ -118,7 +118,7 @@ class TrimesterDynamicHeader extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Text(

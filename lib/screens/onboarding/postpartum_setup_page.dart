@@ -4,8 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:navajeev_m/models/user_model.dart';
 import 'package:navajeev_m/services/auth_service.dart';
 import 'package:navajeev_m/theme/app_colors.dart';
-import 'package:navajeev_m/routes.dart';
-import 'package:navajeev_m/widgets/app_widgets/glass_container.dart'; // Ensure correct path
+import 'package:navajeev_m/widgets/app_widgets/glass_container.dart';
 import 'package:navajeev_m/widgets/app_widgets/glass_text_field.dart';
 import 'package:provider/provider.dart';
 
@@ -442,7 +441,7 @@ class _PostpartumSetupPageState extends State<PostpartumSetupPage>
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primaryAccent.withOpacity(0.9)
+              ? AppColors.primaryAccent.withValues(alpha: 0.9)
               : Colors.white.withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -494,7 +493,7 @@ class _PostpartumSetupPageState extends State<PostpartumSetupPage>
           ),
           isExpanded: true,
           icon: const Icon(Icons.arrow_drop_down, color: Colors.black54),
-          dropdownColor: Colors.white.withOpacity(0.95),
+          dropdownColor: Colors.white.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(12),
           items: items.map((String item) {
             return DropdownMenuItem<String>(value: item, child: Text(item));

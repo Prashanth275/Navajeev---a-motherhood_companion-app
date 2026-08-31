@@ -27,7 +27,7 @@ class BabyInfocard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: accent.withOpacity(0.25),
+              color: accent.withValues(alpha: 0.25),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -40,7 +40,7 @@ class BabyInfocard extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: accent.withOpacity(0.18),
+                color: accent.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Icon(

@@ -11,14 +11,10 @@ class AiInsightProvider extends ChangeNotifier {
   final Map<String, bool> _loading = {};
   final Map<String, String?> _errors = {};
 
-  // 🔑 NEW KEY (userId + module + subject)
+  // NEW KEY (userId + module + subject)
   String _key(String userId, String module, String subject) {
     return "$userId-$module-$subject";
   }
-
-  // -------------------------------------------------------
-  // GETTERS
-  // -------------------------------------------------------
 
   AiInsightResult? getResult(String userId, String module, String subject) {
     return _results[_key(userId, module, subject)];
@@ -32,12 +28,8 @@ class AiInsightProvider extends ChangeNotifier {
     return _errors[_key(userId, module, subject)];
   }
 
-  // -------------------------------------------------------
-  // FETCH INSIGHT
-  // -------------------------------------------------------
-
   Future<void> fetchInsight({
-    required String userId,              // 🔥 NEW
+    required String userId,
     required String module,
     required String subject,
     int? babyAgeWeeks,
@@ -80,12 +72,8 @@ class AiInsightProvider extends ChangeNotifier {
     }
   }
 
-  // -------------------------------------------------------
-  // FETCH RECOMMENDATION (USER-SAFE)
-  // -------------------------------------------------------
-
   Future<void> fetchRecommendation({
-    required String userId,              // 🔥 NEW
+    required String userId,
     int? babyAgeWeeks,
     String? sleepPattern,
     String? feedingPattern,
@@ -124,11 +112,6 @@ class AiInsightProvider extends ChangeNotifier {
     }
   }
 
-  // -------------------------------------------------------
-  // CLEAR METHODS
-  // -------------------------------------------------------
-
-  // 🔥 Clear only one module for a user
   void clearModule(String userId, String module) {
     _results.removeWhere((key, _) => key.startsWith("$userId-$module"));
     _loading.removeWhere((key, _) => key.startsWith("$userId-$module"));
@@ -136,7 +119,6 @@ class AiInsightProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 🔥 Clear only one user's data (BEST PRACTICE)
   void clearUser(String userId) {
     _results.removeWhere((key, _) => key.startsWith(userId));
     _loading.removeWhere((key, _) => key.startsWith(userId));
@@ -144,7 +126,6 @@ class AiInsightProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 🔥 Clear everything (fallback)
   void clearAll() {
     _results.clear();
     _loading.clear();

@@ -54,7 +54,7 @@ class _AddGrowthPageState extends State<AddGrowthPage> {
             key: _formKey,
             child: ListView(
               children: [
-                _datePicker(),
+                _datePicker(baby),
                 const SizedBox(height: 16),
                 _numberField(
                   controller: _weightCtrl,
@@ -85,7 +85,7 @@ class _AddGrowthPageState extends State<AddGrowthPage> {
     );
   }
 
-  Widget _datePicker() {
+  Widget _datePicker(BabyDetails baby) {
     return ListTile(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
@@ -97,11 +97,21 @@ class _AddGrowthPageState extends State<AddGrowthPage> {
       ),
       trailing: const Icon(Icons.calendar_today),
       onTap: () async {
+        final firstDate = baby.dateOfBirth;
+        final lastDate = DateTime.now();
+        var initialDate = _date;
+
+        if (initialDate.isBefore(firstDate)) {
+          initialDate = firstDate;
+        } else if (initialDate.isAfter(lastDate)) {
+          initialDate = lastDate;
+        }
+
         final picked = await showDatePicker(
           context: context,
-          initialDate: _date,
-          firstDate: DateTime(2000),
-          lastDate: DateTime.now(),
+          initialDate: initialDate,
+          firstDate: firstDate,
+          lastDate: lastDate,
         );
 
         if (picked != null) {

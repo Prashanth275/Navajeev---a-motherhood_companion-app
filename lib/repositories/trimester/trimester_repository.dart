@@ -79,7 +79,7 @@ class TrimesterRepository {
     if (_isLoaded) return;
 
     final jsonString = await rootBundle
-        .loadString('size_data/trimester_weeks.json');
+        .loadString('assets/size_data/trimester_weeks.json');
 
     final List<dynamic> jsonData = json.decode(jsonString);
 

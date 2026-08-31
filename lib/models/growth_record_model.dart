@@ -10,19 +10,19 @@ class GrowthRecord {
   final int ageInDays;
 
   //Metrics
-  final double weightKg;
-  final double lengthCm;
+  final double? weightKg;
+  final double? lengthCm;
   final double? headCircumferenceCm;
 
   // Z-Scores
-  final double zWeightForAge;
-  final double zLengthForAge;
+  final double? zWeightForAge;
+  final double? zLengthForAge;
   final double? zWeightForLength;
   final double? zHeadCircumferenceForAge;
 
-  final GrowthStatus weightStatus;
-  final GrowthStatus lengthStatus;
-  final GrowthStatus proportionalityStatus;
+  final GrowthStatus? weightStatus;
+  final GrowthStatus? lengthStatus;
+  final GrowthStatus? proportionalityStatus;
   final GrowthStatus? headCircumferenceStatus;
 
   final GrowthStatus overallStatus;
@@ -33,16 +33,16 @@ class GrowthRecord {
     required this.id,
     required this.checkInDate,
     required this.ageInDays,
-    required this.weightKg,
-    required this.lengthCm,
+    this.weightKg,
+    this.lengthCm,
     this.headCircumferenceCm,
-    required this.zWeightForAge,
-    required this.zLengthForAge,
-    required this.zWeightForLength,
+    this.zWeightForAge,
+    this.zLengthForAge,
+    this.zWeightForLength,
     this.zHeadCircumferenceForAge,
-    required this.weightStatus,
-    required this.lengthStatus,
-    required this.proportionalityStatus,
+    this.weightStatus,
+    this.lengthStatus,
+    this.proportionalityStatus,
     this.headCircumferenceStatus,
     required this.overallStatus,
     required this.concerns,
@@ -67,9 +67,9 @@ class GrowthRecord {
         'head_circumference_for_age': zHeadCircumferenceForAge,
       },
       'status': {
-        'weight': weightStatus.name,
-        'length': lengthStatus.name,
-        'proportionality': proportionalityStatus.name,
+        'weight': weightStatus?.name,
+        'length': lengthStatus?.name,
+        'proportionality': proportionalityStatus?.name,
         'head_circumference': headCircumferenceStatus?.name,
       },
       'overall_status': overallStatus.name,
@@ -91,19 +91,24 @@ class GrowthRecord {
       id: id,
       checkInDate: (data['check_in_date'] as Timestamp).toDate(),
       ageInDays: data['age_in_days'],
-      weightKg: (metrics['weight_kg'] as num).toDouble(),
-      lengthCm: (metrics['length_cm'] as num).toDouble(),
+      weightKg: (metrics['weight_kg'] as num?)?.toDouble(),
+      lengthCm: (metrics['length_cm'] as num?)?.toDouble(),
       headCircumferenceCm:
       (metrics['head_circumference_cm'] as num?)?.toDouble(),
-      zWeightForAge: (z['weight_for_age'] as num).toDouble(),
-      zLengthForAge: (z['length_for_age'] as num).toDouble(),
-      zWeightForLength: (z['weight_for_length'] as num).toDouble(),
+      zWeightForAge: (z['weight_for_age'] as num?)?.toDouble(),
+      zLengthForAge: (z['length_for_age'] as num?)?.toDouble(),
+      zWeightForLength: (z['weight_for_length'] as num?)?.toDouble(),
       zHeadCircumferenceForAge:
       (z['head_circumference_for_age'] as num?)?.toDouble(),
-      weightStatus: GrowthStatus.values.byName(s['weight']),
-      lengthStatus: GrowthStatus.values.byName(s['length']),
-      proportionalityStatus:
-      GrowthStatus.values.byName(s['proportionality']),
+      weightStatus: s['weight'] != null
+          ? GrowthStatus.values.byName(s['weight'])
+          : null,
+      lengthStatus: s['length'] != null
+          ? GrowthStatus.values.byName(s['length'])
+          : null,
+      proportionalityStatus: s['proportionality'] != null
+          ? GrowthStatus.values.byName(s['proportionality'])
+          : null,
       headCircumferenceStatus: s['head_circumference'] != null
           ? GrowthStatus.values.byName(s['head_circumference'])
           : null,

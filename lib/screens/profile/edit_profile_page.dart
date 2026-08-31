@@ -141,11 +141,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> pickDate() async {
+    final provider = context.read<ProfileProvider>();
+    final data = provider.userData;
+    final stage = data?['stage'];
+
+    DateTime firstDate;
+    DateTime lastDate;
+    DateTime initialDate;
+
+    if (stage == 'pregnancy') {
+      firstDate = DateTime.now().subtract(const Duration(days: 280));
+      lastDate = DateTime.now().add(const Duration(days: 300));
+      initialDate = selectedDate ?? DateTime.now().add(const Duration(days: 90));
+    } else {
+      firstDate = DateTime.now().subtract(const Duration(days: 730));
+      lastDate = DateTime.now();
+      initialDate = selectedDate ?? DateTime.now();
+    }
+
+    if (initialDate.isBefore(firstDate)) {
+      initialDate = firstDate;
+    } else if (initialDate.isAfter(lastDate)) {
+      initialDate = lastDate;
+    }
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(primary: Colors.pink),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) setState(() => selectedDate = picked);
   }

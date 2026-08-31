@@ -7,7 +7,7 @@ import 'package:navajeev_m/screens/tracker/trimester_tracker/trimester_tracker_s
 import 'package:navajeev_m/widgets/app_widgets/app_header.dart';
 import 'package:navajeev_m/widgets/app_widgets/side_nav.dart';
 import 'package:provider/provider.dart';
-import '../../providers/feeding/feeding_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/reponsive.dart';
 import '../../widgets/app_widgets/bottom_nav.dart';
@@ -33,11 +33,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-
-      final feedingProvider =
-      context.read<FeedingProvider>();
-
-      feedingProvider.setSelectedDate(DateTime.now());
   }
 
   @override
@@ -52,7 +47,7 @@ class _HomePageState extends State<HomePage> {
       return [
         _NavConfig(title: 'Dashboard', icon: Icons.home_outlined, page: const HomeDashboard()), // 0
         _NavConfig(title: 'Trimester', icon: Icons.calculate_outlined, page: const TrimesterTrackerScreen()), // 1
-        _NavConfig(title: 'AI Assistant', icon: Icons.chat_bubble_outline, page: const ChatPage()), // 2
+        _NavConfig(title: 'Navajeev.ai', icon: Icons.chat_bubble_outline, page: const ChatPage()), // 2
         _NavConfig(title: 'Sleep Tracker', icon: Icons.bedtime_outlined, page: const SleepDashboard()), // 3
         _NavConfig(title: 'Appointments', icon: Icons.calendar_today_outlined, page: const AppointmentsPage()),
         _NavConfig(title: 'Wellbeing', icon: Icons.favorite_border, page: const WellbeingScreen()),
@@ -62,8 +57,8 @@ class _HomePageState extends State<HomePage> {
       return [
         _NavConfig(title: 'Dashboard', icon: Icons.home_outlined, page: const HomeDashboard()), // 0
         _NavConfig(title: 'Growth Tracker', icon: Icons.show_chart, page: const GrowthHomePage()), // 1
-        _NavConfig(title: 'AI Assistant', icon: Icons.chat_bubble_outline, page: const ChatPage()), // 2
-        _NavConfig(title: 'Feeding', icon: Icons.soup_kitchen_outlined, page: const FeedingTrackerScreen()), // 3
+        _NavConfig(title: 'Navajeev.ai', icon: Icons.chat_bubble_outline, page: const ChatPage()), // 2
+        _NavConfig(title: 'Feeding', icon: 'assets/icons/baby_bottle.png', page: const FeedingTrackerScreen()), // 3
         _NavConfig(title: 'Vaccines', icon: Icons.vaccines_outlined, page: const VaccinationTrackerPage()),
         _NavConfig(title: 'Sleep Tracker', icon: Icons.bedtime_outlined, page: const SleepDashboard()),
         _NavConfig(title: 'Appointments', icon: Icons.calendar_today_outlined, page: const AppointmentsPage()),
@@ -95,7 +90,9 @@ class _HomePageState extends State<HomePage> {
     } else if (hour < 17) {
       timeGreeting = 'Good Afternoon';
     }
-    else timeGreeting = 'Good Evening';
+    else {
+      timeGreeting = 'Good Evening';
+    }
     return '$timeGreeting, ${user.name}';
   }
 
@@ -169,6 +166,8 @@ class _MobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final profileProvider = context.watch<ProfileProvider>();
+    final photoUrl = profileProvider.userData?['photoUrl'] as String?;
     final pages = allPages.map((c) => c.page).toList();
     int bottomNavSelection = bottomNavIndices.indexOf(currentIndex);
     if (bottomNavSelection == -1) bottomNavSelection = 0;
@@ -196,8 +195,14 @@ class _MobileLayout extends StatelessWidget {
             UserAccountsDrawerHeader(
               accountName: Text(user?.name ?? 'User'),
               accountEmail: const Text('Navajeev Companion'),
-              currentAccountPicture: const CircleAvatar(
-                child: Icon(Icons.person),
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: Colors.white,
+                backgroundImage: photoUrl != null
+                    ? NetworkImage(photoUrl)
+                    : null,
+                child: photoUrl == null
+                    ? const Icon(Icons.person, size: 40, color: AppColors.primaryAccent)
+                    : null,
               ),
               decoration: const BoxDecoration(gradient: AppColors.brandGradient), // Pink accent
             ),
@@ -206,7 +211,9 @@ class _MobileLayout extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 children: [
                   ...drawerIndices.map((index) => ListTile(
-                    leading: Icon(allPages[index].icon),
+                    leading: allPages[index].icon is IconData
+                        ? Icon(allPages[index].icon as IconData)
+                        : ImageIcon(AssetImage(allPages[index].icon as String)),
                     title: Text(allPages[index].title),
                     selected: currentIndex == index,
                     onTap: () {
@@ -236,7 +243,9 @@ class _MobileLayout extends StatelessWidget {
         currentIndex: bottomNavSelection,
         onTap: (navIndex) => onTap(bottomNavIndices[navIndex]),
         items: bottomNavIndices.map((index) => BottomNavigationBarItem(
-          icon: Icon(allPages[index].icon),
+          icon: allPages[index].icon is IconData
+              ? Icon(allPages[index].icon as IconData)
+              : ImageIcon(AssetImage(allPages[index].icon as String)),
           label: allPages[index].title,
         )).toList(),
       ),
@@ -300,7 +309,7 @@ class _DesktopLayout extends StatelessWidget {
 
 class _NavConfig {
   final String title;
-  final IconData icon;
+  final dynamic icon;
   final Widget page;
   _NavConfig({required this.title, required this.icon, required this.page});
 }

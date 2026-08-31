@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/vaccine_providers.dart';
 import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
 import '../../widgets/vaccine_widgets/vaccine_card.dart';
 import '../../theme/app_colors.dart';
 import '../../models/vaccine_model.dart';
@@ -38,15 +39,25 @@ class _VaccinationTrackerPageState extends State<VaccinationTrackerPage> {
     }
   }
 
-  Future<void> _markAsDone(String vaccineId) async {
+  Future<void> _markAsDone(String vaccineId, BabyDetails? baby) async {
     final provider =
     Provider.of<VaccineProvider>(context, listen: false);
 
+    final firstDate = baby?.dateOfBirth ?? DateTime.now().subtract(const Duration(days: 365));
+    final lastDate = DateTime.now();
+    var initialDate = DateTime.now();
+
+    if (initialDate.isBefore(firstDate)) {
+      initialDate = firstDate;
+    } else if (initialDate.isAfter(lastDate)) {
+      initialDate = lastDate;
+    }
+
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
 
     if (pickedDate != null && mounted) {
@@ -58,6 +69,7 @@ class _VaccinationTrackerPageState extends State<VaccinationTrackerPage> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     final user = auth.currentUser;
+    final baby = user?.babyDetails;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Vaccination Tracker'),
@@ -92,6 +104,7 @@ class _VaccinationTrackerPageState extends State<VaccinationTrackerPage> {
             remaining = upcoming.where((v) => v != nextDue).toList();
           }
 
+
           final babyDob = user!.babyDob!;
 
           return ListView(
@@ -104,7 +117,7 @@ class _VaccinationTrackerPageState extends State<VaccinationTrackerPage> {
                 VaccineCard(
                   vaccine: nextDue,
                   babyDob: babyDob,
-                  onMarkAsDone: () => _markAsDone(nextDue!.id),
+                  onMarkAsDone: () => _markAsDone(nextDue!.id, baby),
                   style: VaccineCardStyle.featured,
                 ),
                 const SizedBox(height: 16),
@@ -127,7 +140,7 @@ class _VaccinationTrackerPageState extends State<VaccinationTrackerPage> {
                       (v) => VaccineCard(
                     vaccine: v,
                     babyDob: babyDob,
-                    onMarkAsDone: () => _markAsDone(v.id),
+                    onMarkAsDone: () => _markAsDone(v.id, baby),
                     style: VaccineCardStyle.list,
                   ),
                 ),

@@ -65,7 +65,7 @@ class _ReminderTile extends StatelessWidget {
         color: bgColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: iconColor.withOpacity(0.15),
+          color: iconColor.withValues(alpha: 0.15),
         ),
       ),
       child: Row(
@@ -73,7 +73,7 @@ class _ReminderTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
+              color: iconColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(

@@ -80,36 +80,42 @@ class GrowthAnalyzer {
   }
 
   static OverallResult overallStatusWithConcerns({
-    required GrowthStatus weightStatus,
-    required GrowthStatus lengthStatus,
-    required GrowthStatus proportionalityStatus,
+    required GrowthStatus? weightStatus,
+    required GrowthStatus? lengthStatus,
+    required GrowthStatus? proportionalityStatus,
     GrowthStatus? headStatus,
   }) {
     final List<String> concerns = [];
     final List<GrowthStatus> allStatuses = [
-      weightStatus,
-      lengthStatus,
-      proportionalityStatus,
+      if (weightStatus != null) weightStatus,
+      if (lengthStatus != null) lengthStatus,
+      if (proportionalityStatus != null) proportionalityStatus,
       if (headStatus != null) headStatus,
     ];
 
     // Collect concerns
-    if (weightStatus == GrowthStatus.belowNormal) {
-      concerns.add("Weight below expected range");
-    } else if (weightStatus == GrowthStatus.aboveNormal) {
-      concerns.add("Weight above expected range");
+    if (weightStatus != null) {
+      if (weightStatus == GrowthStatus.belowNormal) {
+        concerns.add("Weight below expected range");
+      } else if (weightStatus == GrowthStatus.aboveNormal) {
+        concerns.add("Weight above expected range");
+      }
     }
 
-    if (lengthStatus == GrowthStatus.belowNormal) {
-      concerns.add("Height below expected range");
-    } else if (lengthStatus == GrowthStatus.aboveNormal) {
-      concerns.add("Height above expected range");
+    if (lengthStatus != null) {
+      if (lengthStatus == GrowthStatus.belowNormal) {
+        concerns.add("Height below expected range");
+      } else if (lengthStatus == GrowthStatus.aboveNormal) {
+        concerns.add("Height above expected range");
+      }
     }
 
-    if (proportionalityStatus == GrowthStatus.belowNormal) {
-      concerns.add("Weight-for-length below expected range");
-    } else if (proportionalityStatus == GrowthStatus.aboveNormal) {
-      concerns.add("Weight-for-length above expected range");
+    if (proportionalityStatus != null) {
+      if (proportionalityStatus == GrowthStatus.belowNormal) {
+        concerns.add("Weight-for-length below expected range");
+      } else if (proportionalityStatus == GrowthStatus.aboveNormal) {
+        concerns.add("Weight-for-length above expected range");
+      }
     }
 
     if (headStatus != null) {

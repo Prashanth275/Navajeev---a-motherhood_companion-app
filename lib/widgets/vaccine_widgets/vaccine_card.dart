@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/vaccine_model.dart';
-import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 
 enum VaccineCardStyle { featured, list, completed }

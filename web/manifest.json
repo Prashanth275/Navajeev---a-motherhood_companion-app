@@ -1,11 +1,11 @@
 {
-    "name": "navajeev_m",
-    "short_name": "navajeev_m",
+    "name": "Navajeev",
+    "short_name": "Navajeev",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FF8A9F",
+    "theme_color": "#FF8A9F",
+    "description": "Navajeev - A Motherhood Companion App",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

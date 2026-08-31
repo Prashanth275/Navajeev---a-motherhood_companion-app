@@ -25,6 +25,13 @@ class _FeedingTrackerScreenState
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<FeedingProvider>();
+      if (provider.error != null || provider.feedings.isEmpty) {
+        provider.initialize();
+      }
+    });
+
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection ==
           ScrollDirection.reverse) {
@@ -523,7 +530,7 @@ class _FeedingListItem extends StatelessWidget {
         Alignment.centerRight,
         decoration: BoxDecoration(
           color: Colors.red
-              .withOpacity(0.85),
+              .withValues(alpha: 0.85),
           borderRadius:
           BorderRadius.circular(16),
         ),

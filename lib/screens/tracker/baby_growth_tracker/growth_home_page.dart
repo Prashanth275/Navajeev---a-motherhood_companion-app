@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:navajeev_m/widgets/growth_widgets/growth_chart.dart';
 import 'package:navajeev_m/widgets/growth_widgets/growth_summary_cards.dart';
-import 'package:navajeev_m/services/growth/growth_fetch_service.dart';
 import 'package:navajeev_m/services/auth_service.dart';
 import 'package:navajeev_m/models/growth_record_model.dart';
 import 'package:provider/provider.dart';
-import '../../../extensions/baby_gender_extensions.dart';
-import '../../../models/who_entry.dart';
 import '../../../providers/growth/growth_provider.dart';
 import '../../../widgets/growth_widgets/baby_info_card.dart';
-import 'package:navajeev_m/models/who_metric.dart';
 import 'package:navajeev_m/widgets/growth_widgets/growth_history_list.dart';
 import 'package:navajeev_m/widgets/growth_widgets/add_growth_modal.dart';
 
@@ -21,10 +17,29 @@ class GrowthHomePage extends StatefulWidget {
 }
 
 class _GrowthHomePageState extends State<GrowthHomePage> {
-  String _delta(double current, double previous, String unit) {
+  String _delta(double? current, double? previous, String unit) {
+    if (current == null || previous == null) return 'First';
     final diff = current - previous;
     final sign = diff >= 0 ? '+' : '';
     return '$sign${diff.toStringAsFixed(1)} $unit';
+  }
+
+  GrowthRecord? _findLatestWith(List<GrowthRecord> list, bool Function(GrowthRecord) test) {
+    for (final r in list) {
+      if (test(r)) return r;
+    }
+    return null;
+  }
+
+  GrowthRecord? _findPreviousWith(List<GrowthRecord> list, bool Function(GrowthRecord) test) {
+    bool foundFirst = false;
+    for (final r in list) {
+      if (test(r)) {
+        if (foundFirst) return r;
+        foundFirst = true;
+      }
+    }
+    return null;
   }
 
   @override
@@ -71,7 +86,15 @@ class _GrowthHomePageState extends State<GrowthHomePage> {
 
           final records = growthProvider.records.reversed.toList();
           final latest = growthProvider.latestRecord;
-          final previous = records.length > 1 ? records[1] : null;
+
+          final latestWeight = _findLatestWith(records, (r) => r.weightKg != null);
+          final prevWeight = _findPreviousWith(records, (r) => r.weightKg != null);
+
+          final latestHeight = _findLatestWith(records, (r) => r.lengthCm != null);
+          final prevHeight = _findPreviousWith(records, (r) => r.lengthCm != null);
+
+          final latestHead = _findLatestWith(records, (r) => r.headCircumferenceCm != null);
+          final prevHead = _findPreviousWith(records, (r) => r.headCircumferenceCm != null);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -87,26 +110,28 @@ class _GrowthHomePageState extends State<GrowthHomePage> {
                     final cards = [
                       GrowthSummaryCard(
                         label: "Weight",
-                        value: "${latest?.weightKg ?? '--'} kg",
-                        trend: previous != null
-                            ? _delta(latest!.weightKg, previous.weightKg, 'kg')
-                            : "First",
+                        value: latestWeight?.weightKg != null
+                            ? "${latestWeight!.weightKg} kg"
+                            : "-- kg",
+                        trend: _delta(latestWeight?.weightKg, prevWeight?.weightKg, 'kg'),
                         iconColor: Colors.pink,
                         icon: Icons.monitor_weight_outlined,
                       ),
                       GrowthSummaryCard(
                         label: "Height",
-                        value: "${latest?.lengthCm ?? '--'} cm",
-                        trend: previous != null
-                            ? _delta(latest!.lengthCm, previous.lengthCm, 'cm')
-                            : "First",
+                        value: latestHeight?.lengthCm != null
+                            ? "${latestHeight!.lengthCm} cm"
+                            : "-- cm",
+                        trend: _delta(latestHeight?.lengthCm, prevHeight?.lengthCm, 'cm'),
                         iconColor: Colors.blue,
                         icon: Icons.height,
                       ),
                       GrowthSummaryCard(
                         label: "Head",
-                        value: "${latest?.headCircumferenceCm ?? '--'} cm",
-                        trend: latest != null ? "Updated" : "No data",
+                        value: latestHead?.headCircumferenceCm != null
+                            ? "${latestHead!.headCircumferenceCm} cm"
+                            : "-- cm",
+                        trend: _delta(latestHead?.headCircumferenceCm, prevHead?.headCircumferenceCm, 'cm'),
                         iconColor: Colors.purple,
                         icon: Icons.face_outlined,
                       ),

@@ -65,15 +65,15 @@ class HomeDashboard extends StatelessWidget {
     final latestRecord =
         growthProvider.latestRecord;
 
-    final weight = latestRecord != null
+    final weight = (latestRecord != null && latestRecord.weightKg != null)
         ? "${latestRecord.weightKg} kg"
         : "--";
 
-    final height = latestRecord != null
+    final height = (latestRecord != null && latestRecord.lengthCm != null)
         ? "${latestRecord.lengthCm} cm"
         : "--";
 
-    final head = latestRecord != null
+    final head = (latestRecord != null && latestRecord.headCircumferenceCm != null)
         ? "${latestRecord.headCircumferenceCm} cm"
         : "--";
 

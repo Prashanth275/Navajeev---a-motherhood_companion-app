@@ -15,8 +15,8 @@ class GrowthService {
     required String babyId,
     required BabyDetails baby,
     required DateTime checkInDate,
-    required double weightKg,
-    required double lengthCm,
+    double? weightKg,
+    double? lengthCm,
     double? headCircumferenceCm,
   }) async {
 
@@ -30,11 +30,11 @@ class GrowthService {
     throw Exception('Check-in date cannot be before date of birth');
   }
 
-  if (weightKg <= 0 || weightKg > 30) {
+  if (weightKg != null && (weightKg <= 0 || weightKg > 30)) {
     throw Exception('Invalid weight value');
   }
 
-  if (lengthCm <= 30 || lengthCm > 120) {
+  if (lengthCm != null && (lengthCm <= 30 || lengthCm > 120)) {
     throw Exception('Invalid length value');
   }
 
@@ -49,19 +49,23 @@ class GrowthService {
     );
 
     final genderKey = baby.gender.whoKey;
-    final wfa = await _lookup(
-      genderKey,
-      WhoMetric.weightForAge,
-      ageDays.toDouble(),
-    );
+    final wfa = weightKg != null
+        ? await _lookup(
+            genderKey,
+            WhoMetric.weightForAge,
+            ageDays.toDouble(),
+          )
+        : null;
 
-    final lfa = await _lookup(
-      genderKey,
-      WhoMetric.lengthForAge,
-      ageDays.toDouble(),
-    );
+    final lfa = lengthCm != null
+        ? await _lookup(
+            genderKey,
+            WhoMetric.lengthForAge,
+            ageDays.toDouble(),
+          )
+        : null;
 
-    final wfl = (lengthCm >= 45 && lengthCm <= 110)
+    final wfl = (weightKg != null && lengthCm != null && lengthCm >= 45 && lengthCm <= 110)
         ? await _lookup(
       genderKey,
       WhoMetric.weightForLength,
@@ -79,23 +83,27 @@ class GrowthService {
         : null;
 
     // Z-scores
-  final zWfa = GrowthAnalyzer.zScoreLms(
-    value: weightKg,
-    l: wfa.l,
-    m: wfa.m,
-    s: wfa.s,
-  );
+  final zWfa = wfa != null
+      ? GrowthAnalyzer.zScoreLms(
+          value: weightKg!,
+          l: wfa.l,
+          m: wfa.m,
+          s: wfa.s,
+        )
+      : null;
 
-  final zLfa = GrowthAnalyzer.zScoreLms(
-    value: lengthCm,
-    l: lfa.l,
-    m: lfa.m,
-    s: lfa.s,
-  );
+  final zLfa = lfa != null
+      ? GrowthAnalyzer.zScoreLms(
+          value: lengthCm!,
+          l: lfa.l,
+          m: lfa.m,
+          s: lfa.s,
+        )
+      : null;
 
   final zWfl = wfl != null
       ? GrowthAnalyzer.zScoreLms(
-    value: weightKg,
+    value: weightKg!,
     l: wfl.l,
     m: wfl.m,
     s: wfl.s,
@@ -113,10 +121,9 @@ class GrowthService {
 
 
   // Status
-    final weightStatus = GrowthAnalyzer.classify(zWfa);
-    final lengthStatus = GrowthAnalyzer.classify(zLfa);
-    final proportionalityStatus =
-    zWfl != null ? GrowthAnalyzer.classify(zWfl) : GrowthStatus.normal;
+    final weightStatus = zWfa != null ? GrowthAnalyzer.classify(zWfa) : null;
+    final lengthStatus = zLfa != null ? GrowthAnalyzer.classify(zLfa) : null;
+    final proportionalityStatus = zWfl != null ? GrowthAnalyzer.classify(zWfl) : null;
 
     final hcStatus =
     zHcfa != null ? GrowthAnalyzer.classify(zHcfa) : null;

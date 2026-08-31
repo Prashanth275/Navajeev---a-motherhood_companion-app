@@ -34,6 +34,41 @@ class BabyDetails {
   });
 }
 
+class PartnerDetails {
+  final String name;
+  final String email;
+  final ParentRole role;
+
+  PartnerDetails({
+    required this.name,
+    required this.email,
+    required this.role,
+  });
+
+  factory PartnerDetails.fromJson(Map<String, dynamic> json) {
+    ParentRole parsedRole;
+    try {
+      parsedRole = ParentRole.values.byName(json['role'] ?? 'partner');
+    } catch (_) {
+      parsedRole = ParentRole.partner;
+    }
+
+    return PartnerDetails(
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      role: parsedRole,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'email': email,
+      'role': role.name,
+    };
+  }
+}
+
 class UserModel {
   final String id;
   final String name;
@@ -46,6 +81,7 @@ class UserModel {
   /// Optional details
   final PregnancyDetails? pregnancyDetails;
   final BabyDetails? babyDetails;
+  final PartnerDetails? partnerDetails;
 
   UserModel({
     required this.id,
@@ -55,9 +91,9 @@ class UserModel {
     this.activeBabyId,
     this.pregnancyDetails,
     this.babyDetails,
+    this.partnerDetails,
   });
 
-  // Derived helpers
   bool get isPregnancy => stage == UserStage.pregnancy;
   bool get isPostpartum => stage == UserStage.postpartum;
 

@@ -36,7 +36,7 @@ class QuickActionsSection extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryAccent.withOpacity(0.1),
+                      color: AppColors.primaryAccent.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(

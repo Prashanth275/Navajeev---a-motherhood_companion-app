@@ -16,8 +16,12 @@ void main() {
     expect(find.text('Navajeev'), findsOneWidget);
     expect(find.text('Your Motherhood Companion'), findsOneWidget);
     
-    // Verify care icon is present
+    // Verify care icon is present (1 orbiting icon)
     expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
+    
+    // Verify custom logo image is loaded
+    expect(find.byType(Image), findsOneWidget);
   });
 }
+
 

@@ -4,6 +4,7 @@ import 'screens/auth/auth_page.dart';
 import 'screens/home/home_page.dart';
 import 'services/auth_service.dart';
 import 'package:navajeev_m/screens/onboarding/stage_selection_page.dart';
+import 'screens/auth/email_verification_page.dart';
 
 class Wrapper extends StatelessWidget {
   const Wrapper({super.key});
@@ -22,6 +23,11 @@ class Wrapper extends StatelessWidget {
     // Not logged in
     if (!auth.isAuthenticated) {
       return const AuthPage();
+    }
+
+    // Email not verified
+    if (!auth.emailVerified) {
+      return const EmailVerificationPage();
     }
 
     // Logged in but profile incomplete

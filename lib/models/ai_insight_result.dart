@@ -1,5 +1,3 @@
-// Parses the JSON response from /ai/insight for every module.
-// Fields are nullable because each module returns a different shape.
 
 class AiInsightResult {
   final String module;
@@ -76,7 +74,6 @@ class AiInsightResult {
       Map<String, dynamic> json,
       String module,
       ) {
-    // Backend wraps result in a 'result' key
     final r = (json['result'] as Map<String, dynamic>?) ?? json;
 
     return AiInsightResult(

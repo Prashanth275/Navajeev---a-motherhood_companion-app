@@ -139,12 +139,21 @@ class _SleepLogScreenState extends State<SleepLogScreen> {
   }
   Future<void> _pickDateTime({required bool isStart}) async {
     final now = DateTime.now();
+    final firstDate = DateTime.now().subtract(const Duration(days: 730));
+    final lastDate = DateTime.now();
+    var initialDate = now;
+
+    if (initialDate.isBefore(firstDate)) {
+      initialDate = firstDate;
+    } else if (initialDate.isAfter(lastDate)) {
+      initialDate = lastDate;
+    }
 
     final date = await showDatePicker(
       context: context,
-      initialDate: now,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
 
     if (date == null) return;

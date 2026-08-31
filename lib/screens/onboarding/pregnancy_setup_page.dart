@@ -4,8 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:navajeev_m/models/user_model.dart';
 import 'package:navajeev_m/services/auth_service.dart';
 import 'package:navajeev_m/theme/app_colors.dart';
-import 'package:navajeev_m/routes.dart';
-import 'package:navajeev_m/widgets/app_widgets/glass_container.dart'; // Ensure this path is correct
+import 'package:navajeev_m/widgets/app_widgets/glass_container.dart';
 import 'package:navajeev_m/widgets/app_widgets/glass_text_field.dart';
 import 'package:provider/provider.dart';
 
@@ -237,7 +236,6 @@ class _PregnancySetupPageState extends State<PregnancySetupPage>
                             ),
                             const SizedBox(height: 32),
 
-                            // Name Field using GlassTextField
                             GlassTextField(
                               controller: _nameController,
                               hintText: 'Your Name',
@@ -390,7 +388,7 @@ class _PregnancySetupPageState extends State<PregnancySetupPage>
           value: value,
           isExpanded: true,
           icon: const Icon(Icons.arrow_drop_down, color: Colors.black54),
-          dropdownColor: Colors.white.withOpacity(0.95),
+          dropdownColor: Colors.white.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(12),
           items: items,
           onChanged: onChanged,

@@ -22,6 +22,17 @@ class _AddGrowthModalState extends State<AddGrowthModal> {
   bool _saving = false;
 
   @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    if (_date.isBefore(widget.baby.dateOfBirth)) {
+      _date = widget.baby.dateOfBirth;
+    } else if (_date.isAfter(now)) {
+      _date = now;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(
@@ -45,11 +56,21 @@ class _AddGrowthModalState extends State<AddGrowthModal> {
               title: Text("Date: ${_date.day}/${_date.month}/${_date.year}"),
               trailing: const Icon(Icons.calendar_today),
               onTap: () async {
+                final firstDate = widget.baby.dateOfBirth;
+                final lastDate = DateTime.now();
+                var initialDate = _date;
+
+                if (initialDate.isBefore(firstDate)) {
+                  initialDate = firstDate;
+                } else if (initialDate.isAfter(lastDate)) {
+                  initialDate = lastDate;
+                }
+
                 final picked = await showDatePicker(
                   context: context,
-                  initialDate: _date,
-                  firstDate: widget.baby.dateOfBirth,
-                  lastDate: DateTime.now(),
+                  initialDate: initialDate,
+                  firstDate: firstDate,
+                  lastDate: lastDate,
                 );
                 if (picked != null) setState(() => _date = picked);
               },

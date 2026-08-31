@@ -24,8 +24,6 @@ class SleepProvider extends ChangeNotifier {
   bool get isMotherSelected => _isMotherSelected;
 
   StreamSubscription<List<SleepSession>>? _subscription;
-
-  // 🔥 FIXED: store exact DOB
   DateTime? _babyDob;
 
   int get babyAgeMonths {
@@ -37,7 +35,6 @@ class SleepProvider extends ChangeNotifier {
         (now.year - _babyDob!.year) * 12 +
             (now.month - _babyDob!.month);
 
-    // 🔥 adjust if day not completed
     if (now.day < _babyDob!.day) {
       months--;
     }
@@ -45,7 +42,6 @@ class SleepProvider extends ChangeNotifier {
     return months;
   }
 
-  // 🔥 NEW: accurate weeks
   int get babyAgeWeeks {
     if (_babyDob == null) return 0;
     return DateTime
@@ -86,15 +82,11 @@ class SleepProvider extends ChangeNotifier {
     _init();
   }
 
-  // --------------------------------------------------
-  // INIT
-  // --------------------------------------------------
-
   Future<void> _init() async {
     await _subscription?.cancel();
 
     _isLoading = true;
-    _sessions = []; // 🔥 CLEAR OLD DATA (VERY IMPORTANT)
+    _sessions = [];
     notifyListeners();
 
     final uid = auth.currentUser!.id;
@@ -112,7 +104,6 @@ class SleepProvider extends ChangeNotifier {
       isMother: _isMotherSelected,
     );
 
-    // 🔥 LOAD BABY DOB ONLY IF BABY MODE
     if (!_isMotherSelected) {
       final babyId = await auth.getActiveBabyId();
 
@@ -133,12 +124,12 @@ class SleepProvider extends ChangeNotifier {
         }
       }
     } else {
-      _babyDob = null; // 🔥 prevent mixing
+      _babyDob = null;
     }
 
     _subscription = _repository.streamSessions().listen(
           (data) {
-        _sessions = data; // 🔥 always fresh from correct repo
+        _sessions = data;
         _isLoading = false;
         notifyListeners();
       },
@@ -150,26 +141,17 @@ class SleepProvider extends ChangeNotifier {
     );
   }
 
-  // --------------------------------------------------
-  // TOGGLE
-  // --------------------------------------------------
-
   void toggleMode(bool isMother) {
     if (_isMotherSelected == isMother) return;
 
     _isMotherSelected = isMother;
 
-    // 🔥 FORCE RESET EVERYTHING
     _subscription?.cancel();
     _sessions = [];
     _babyDob = null;
 
     _init();
   }
-
-  // --------------------------------------------------
-  // ADD SESSION
-  // --------------------------------------------------
 
   Future<void> addSession({
     required DateTime start,

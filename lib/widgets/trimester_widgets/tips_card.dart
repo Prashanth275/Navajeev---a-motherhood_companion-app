@@ -61,7 +61,7 @@ class TipsCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: accent.withOpacity(0.2),
+              color: accent.withValues(alpha: 0.2),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -77,7 +77,7 @@ class TipsCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: accent.withOpacity(0.15),
+                    color: accent.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -131,10 +131,10 @@ class TipsCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: accent.withOpacity(0.15),
+                  color: accent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: accent.withOpacity(0.4),
+                    color: accent.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Row(

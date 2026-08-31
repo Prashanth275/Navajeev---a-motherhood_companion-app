@@ -79,7 +79,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
         boxShadow: _isFocused
             ? [
           BoxShadow(
-            color: AppColors.primaryAccent.withOpacity(0.4),
+            color: AppColors.primaryAccent.withValues(alpha: 0.4),
             blurRadius: 10,
             spreadRadius: 1,
           ),
@@ -93,11 +93,11 @@ class _GlassTextFieldState extends State<GlassTextField> {
         onTap: widget.onTap,
         keyboardType: widget.keyboardType,
         textCapitalization: widget.textCapitalization,
-        style: TextStyle(color: Colors.black.withOpacity(0.7)),
+        style: TextStyle(color: Colors.black.withValues(alpha: 0.7)),
         decoration: InputDecoration(
           hintText: widget.hintText,
           hintStyle: TextStyle(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             fontSize: 14,
           ),
           prefixIcon: widget.icon != null
@@ -140,7 +140,10 @@ class _GlassTextFieldState extends State<GlassTextField> {
               width: 1.5,
             ),
           ),
-          errorStyle: const TextStyle(color: Colors.orangeAccent),
+          errorStyle: const TextStyle(
+            color: AppColors.primaryAccent,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         obscureText: widget.obscureText,
         validator: widget.validator,

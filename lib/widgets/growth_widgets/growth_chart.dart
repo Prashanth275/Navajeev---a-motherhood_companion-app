@@ -178,6 +178,60 @@ class _GrowthChartState extends State<GrowthChart> {
     );
   }
 
+  List<WhoEntry> _extrapolateWhoData(List<WhoEntry> originalData, double targetMaxMonths) {
+    if (originalData.isEmpty) return originalData;
+
+    final result = List<WhoEntry>.from(originalData);
+    final lastXMonths = originalData.last.x / 30.4375;
+
+    if (targetMaxMonths <= lastXMonths) {
+      return result;
+    }
+
+    if (originalData.length < 2) {
+      final last = originalData.last;
+      final targetDays = (targetMaxMonths * 30.4375).ceil();
+      result.add(WhoEntry(
+        x: targetDays.toDouble(),
+        l: last.l,
+        m: last.m,
+        s: last.s,
+      ));
+      return result;
+    }
+
+    final p1 = originalData[originalData.length - 2];
+    final p2 = originalData.last;
+
+    final dx = p2.x - p1.x;
+    if (dx == 0) return result;
+
+    final slopeL = (p2.l - p1.l) / dx;
+    final slopeM = (p2.m - p1.m) / dx;
+    final slopeS = (p2.s - p1.s) / dx;
+
+    double currentX = p2.x;
+    final double targetDays = targetMaxMonths * 30.4375;
+
+    while (currentX < targetDays) {
+      currentX += 30.0;
+      final double delta = currentX - p2.x;
+      
+      final double newL = p2.l + slopeL * delta;
+      final double newM = p2.m + slopeM * delta;
+      final double newS = p2.s + slopeS * delta;
+
+      result.add(WhoEntry(
+        x: currentX,
+        l: newL,
+        m: newM,
+        s: newS,
+      ));
+    }
+
+    return result;
+  }
+
   LineChartData _chartData(List<WhoEntry> whoData) {
     final lastRecordDate = widget.records.isNotEmpty
         ? widget.records
@@ -190,7 +244,10 @@ class _GrowthChartState extends State<GrowthChart> {
     final double dynamicMaxX =
     currentAgeMonths < 4 ? 4 : currentAgeMonths + 0.5;
 
+    final extrapolatedData = _extrapolateWhoData(whoData, dynamicMaxX);
+
     return LineChartData(
+      clipData: const FlClipData.all(),
       minX: 0,
       maxX: dynamicMaxX,
       gridData: FlGridData(
@@ -201,10 +258,10 @@ class _GrowthChartState extends State<GrowthChart> {
       borderData: FlBorderData(show: false),
       titlesData: _buildTitles(),
       lineBarsData: [
-        _sdLine(whoData, 3, Colors.transparent),
-        _sdLine(whoData, 2, Colors.orange.withValues(alpha: 0.5)),
-        _sdLine(whoData, -2, Colors.orange.withValues(alpha: 0.5)),
-        _sdLine(whoData, -3, Colors.transparent),
+        _sdLine(extrapolatedData, 3, Colors.transparent),
+        _sdLine(extrapolatedData, 2, Colors.orange.withValues(alpha: 0.5)),
+        _sdLine(extrapolatedData, -2, Colors.orange.withValues(alpha: 0.5)),
+        _sdLine(extrapolatedData, -3, Colors.transparent),
         _babyLine(),
       ],
       betweenBarsData: [
@@ -254,15 +311,21 @@ class _GrowthChartState extends State<GrowthChart> {
       );
       dailyRecords[dayKey] = record;
     }
-    final filteredRecords = dailyRecords.values.toList()
+    final filteredRecords = dailyRecords.values
+        .where((r) {
+          if (selectedMetric == MetricKey.weight) return r.weightKg != null;
+          if (selectedMetric == MetricKey.length) return r.lengthCm != null;
+          return r.headCircumferenceCm != null;
+        })
+        .toList()
       ..sort((a, b) => a.checkInDate.compareTo(b.checkInDate));
 
     final spots = filteredRecords.map((r) {
         final ageMonths = r.checkInDate.difference(widget.birthDate).inDays / 30.4375;
         double y;
-        if (selectedMetric == MetricKey.weight) y = r.weightKg;
-        else if (selectedMetric == MetricKey.length) y = r.lengthCm;
-        else y = r.headCircumferenceCm ?? 0;
+        if (selectedMetric == MetricKey.weight) y = r.weightKg!;
+        else if (selectedMetric == MetricKey.length) y = r.lengthCm!;
+        else y = r.headCircumferenceCm!;
 
         final visibleY = _animate ? y : 0.0;
 

@@ -5,6 +5,7 @@ import '../../providers/chat_provider.dart';
 import '../../models/chat_model.dart';
 import '../../models/chat_stage.dart';
 import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_widgets/typing_dots.dart';
 
@@ -20,9 +21,7 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
   bool _initialized = false;
 
-  // -------------------------------------------------------
-  // FAQ lists — shown before user sends first message
-  // -------------------------------------------------------
+  // FAQ lists
   final List<String> pregnancyFaq = [
     "What foods should I eat in the first trimester?",
     "Is it safe to exercise during pregnancy?",
@@ -42,104 +41,53 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_initialized) return;
-    _initialized = true;
-    _initializeFromFirebase();
+    _initializeFromAuth();
   }
 
-  // -------------------------------------------------------
-  // Read real user data from Firebase and build ChatContext
-  // -------------------------------------------------------
-  Future<void> _initializeFromFirebase() async {
+  void _initializeFromAuth() {
     final chatProvider = context.read<ChatProvider>();
 
-    // Already initialized — don't overwrite
+    final authService = Provider.of<AuthService>(context, listen: true);
+    final user = authService.currentUser;
+    if (user == null) return;
+
+    if (chatProvider.context != null && chatProvider.context!.userId != user.id) {
+      chatProvider.reset();
+    }
+
     if (chatProvider.context != null) return;
 
-    try {
-      final authService = context.read<AuthService>();
-      final uid = authService.currentUser!.id;
-      final firestore = FirebaseFirestore.instance;
-
-      // Read user document
-      final userDoc =
-      await firestore.collection('users').doc(uid).get();
-      final userData = userDoc.data() ?? {};
-
-      final stage =
-          userData['stage']?.toString().toLowerCase() ?? 'postpartum';
-
-      // ---- PREGNANCY branch ----
-      if (stage == 'pregnancy') {
-        // Calculate trimester from expected due date
-        int? trimester;
-        final dueDateField = userData['expectedDueDate'];
-        if (dueDateField != null) {
-          final dueDate = dueDateField is Timestamp
-              ? dueDateField.toDate()
-              : DateTime.tryParse(dueDateField.toString());
-
-          if (dueDate != null) {
-            final weeksLeft =
-                dueDate.difference(DateTime.now()).inDays ~/ 7;
-            final weeksPregnant = 40 - weeksLeft;
-            if (weeksPregnant <= 12) trimester = 1;
-            else if (weeksPregnant <= 26) trimester = 2;
-            else trimester = 3;
-          }
-        }
-
-        chatProvider.initialize(ChatContext(
-          stage: 'pregnancy',
-          trimester: trimester,
-        ));
-        return;
+    if (user.stage == UserStage.pregnancy) {
+      int? trimester;
+      if (user.pregnancyDetails != null) {
+        final dueDate = user.pregnancyDetails!.expectedDueDate;
+        final weeksLeft = dueDate.difference(DateTime.now()).inDays ~/ 7;
+        final weeksPregnant = 40 - weeksLeft;
+        if (weeksPregnant <= 12) trimester = 1;
+        else if (weeksPregnant <= 26) trimester = 2;
+        else trimester = 3;
       }
-
-      // ---- POSTPARTUM branch ----
-      // Read baby details from babies collection
-      final babyId = userData['activeBabyId'] as String?;
-      int? babyAgeMonths;
-      String? babyName;
-      String? feedingType;
-      String? deliveryType;
-
-      if (babyId != null) {
-        final babyDoc =
-        await firestore.collection('babies').doc(babyId).get();
-        final babyData = babyDoc.data() ?? {};
-
-        babyName = babyData['name'] as String?;
-        feedingType = babyData['feedingType'] as String?;
-        deliveryType = babyData['deliveryType'] as String?;
-
-        final dobField = babyData['dob'];
-        if (dobField != null) {
-          final dob = dobField is Timestamp
-              ? dobField.toDate()
-              : DateTime.tryParse(dobField.toString());
-
-          if (dob != null) {
-            final now = DateTime.now();
-            babyAgeMonths =
-                (now.year - dob.year) * 12 + (now.month - dob.month);
-          }
-        }
-      }
-
       chatProvider.initialize(ChatContext(
+        userId: user.id,
+        stage: 'pregnancy',
+        trimester: trimester,
+      ));
+    } else {
+      // postpartum
+      int? babyAgeMonths;
+      if (user.babyDetails != null) {
+        final dob = user.babyDetails!.dateOfBirth;
+        final now = DateTime.now();
+        babyAgeMonths = (now.year - dob.year) * 12 + (now.month - dob.month);
+      }
+      chatProvider.initialize(ChatContext(
+        userId: user.id,
         stage: 'postpartum',
         babyAgeMonths: babyAgeMonths,
-        babyName: babyName,
-        feedingType: feedingType,
-        deliveryType: deliveryType,
+        babyName: user.babyDetails?.name,
+        feedingType: user.babyDetails?.feedingType,
+        deliveryType: user.babyDetails?.deliveryType,
       ));
-    } catch (e) {
-      debugPrint('ChatPage Firebase init error: $e');
-      // Fallback — initialize with minimal context rather than crash
-      context.read<ChatProvider>().initialize(
-        ChatContext(stage: 'postpartum'),
-      );
     }
   }
 
@@ -162,14 +110,11 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  // -------------------------------------------------------
-  // FAQ chips — now correctly reads real stage from provider
-  // -------------------------------------------------------
+  // FAQ chips
   Widget _buildFAQChips(ChatProvider chat) {
     // Hide after first user message
     if (chat.messages.length > 1) return const SizedBox.shrink();
 
-    // ✅ Reads real stage from provider — no more hardcoding
     final isPregnancy = chat.context?.isPregnancy ?? false;
     final questions = isPregnancy ? pregnancyFaq : postpartumFaq;
 
@@ -193,7 +138,7 @@ class _ChatPageState extends State<ChatPage> {
                 border: Border.all(color: Colors.grey.shade300),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -229,18 +174,30 @@ class _ChatPageState extends State<ChatPage> {
                 itemCount:
                 chat.messages.length + (chat.isTyping ? 1 : 0),
                 itemBuilder: (_, index) {
-                  // Typing indicator
                   if (chat.isTyping && index == chat.messages.length) {
                     return Align(
                       alignment: Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: const TypingDots(),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const AnimatedAiAvatar(),
+                          const SizedBox(width: 8),
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF5F5F5),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(18),
+                                topRight: Radius.circular(18),
+                                bottomLeft: Radius.circular(0),
+                                bottomRight: Radius.circular(18),
+                              ),
+                            ),
+                            child: const TypingDots(),
+                          ),
+                        ],
                       ),
                     );
                   }
@@ -252,31 +209,63 @@ class _ChatPageState extends State<ChatPage> {
                     alignment: isUser
                         ? Alignment.centerRight
                         : Alignment.centerLeft,
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(14),
-                      constraints: BoxConstraints(
-                        maxWidth:
-                        MediaQuery.of(context).size.width * 0.80,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isUser
-                            ? AppColors.primaryAccent
-                            : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Text(
-                        msg.text,
-                        softWrap: true,
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          height: 1.4,
-                          fontSize: 14,
-                          color: isUser
-                              ? Colors.white
-                              : AppColors.textPrimary,
+                    child: Row(
+                      mainAxisAlignment: isUser
+                          ? MainAxisAlignment.end
+                          : MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (!isUser) ...[
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                                width: 1,
+                              ),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Image.asset(
+                              'assets/ai_logo.png',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(14),
+                          constraints: BoxConstraints(
+                            maxWidth:
+                            MediaQuery.of(context).size.width * 0.70,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isUser
+                                ? AppColors.primaryAccent
+                                : Colors.grey.shade100,
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(18),
+                              topRight: const Radius.circular(18),
+                              bottomLeft: Radius.circular(isUser ? 18 : 0),
+                              bottomRight: Radius.circular(isUser ? 0 : 18),
+                            ),
+                          ),
+                          child: Text(
+                            msg.text,
+                            softWrap: true,
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              height: 1.4,
+                              fontSize: 14,
+                              color: isUser
+                                  ? Colors.white
+                                  : AppColors.textPrimary,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   );
                 },
@@ -314,6 +303,84 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class AnimatedAiAvatar extends StatefulWidget {
+  const AnimatedAiAvatar({super.key});
+
+  @override
+  State<AnimatedAiAvatar> createState() => _AnimatedAiAvatarState();
+}
+
+class _AnimatedAiAvatarState extends State<AnimatedAiAvatar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _glowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.08).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _glowAnimation = Tween<double>(begin: 4.0, end: 12.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryAccent.withValues(alpha: 0.25 * (1.0 - _controller.value)),
+                  blurRadius: _glowAnimation.value,
+                  spreadRadius: 1,
+                ),
+              ],
+              border: Border.all(
+                color: AppColors.primaryAccent.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Image.asset(
+              'assets/ai_logo.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      },
     );
   }
 }

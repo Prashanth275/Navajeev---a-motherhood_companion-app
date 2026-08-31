@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/trimester/trimester_week_model.dart';
 import '../../repositories/trimester/trimester_repository.dart';
 import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
 
 class TrimesterProvider extends ChangeNotifier {
   final TrimesterRepository _repository;
@@ -27,42 +28,26 @@ class TrimesterProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      final uid = _authService.currentUser?.id;
-      if (uid == null) {
+      final user = _authService.currentUser;
+      if (user == null) {
         _error = "User not logged in";
         _isLoading = false;
         notifyListeners();
         return;
       }
 
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
-
-      if (!doc.exists) {
-        _error = "User data not found";
-        _isLoading = false;
-        notifyListeners();
-        return;
-      }
-
-      final data = doc.data();
-      final pregnancy = data?['pregnancy'];
-
-      if (pregnancy == null || pregnancy['edd'] == null) {
+      if (user.stage != UserStage.pregnancy || user.pregnancyDetails == null) {
         _error = "Due date not set";
         _isLoading = false;
         notifyListeners();
         return;
       }
 
-      final eddString = pregnancy['edd'];
-      final dueDate = DateTime.parse(eddString);
-
+      final dueDate = user.pregnancyDetails!.expectedDueDate;
       final week = _repository.calculateCurrentWeek(dueDate);
       _currentWeekData = await _repository.getWeekData(week);
 
+      _error = null;
       _isLoading = false;
       notifyListeners();
     } catch (e) {

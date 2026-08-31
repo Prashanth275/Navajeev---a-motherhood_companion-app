@@ -170,7 +170,7 @@ class _TodayMoodCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: Colors.grey.withOpacity(0.1)),
+        side: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -214,7 +214,7 @@ class _TodayMoodCard extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.background.withOpacity(0.5),
+                        color: AppColors.background.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -242,7 +242,7 @@ class _EmptyMoodCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.withOpacity(0.1)),
+        side: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: const Padding(
         padding: EdgeInsets.all(24),

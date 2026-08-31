@@ -1,4 +1,5 @@
 class ChatContext {
+  final String userId;
   final String stage;         // 'pregnancy' | 'postpartum'
   final int? trimester;       // 1, 2, or 3 (pregnancy only)
   final int? babyAgeMonths;   // postpartum only
@@ -7,6 +8,7 @@ class ChatContext {
   final String? deliveryType; // 'normal' | 'caesarean'
 
   ChatContext({
+    required this.userId,
     required this.stage,
     this.trimester,
     this.babyAgeMonths,
@@ -15,10 +17,6 @@ class ChatContext {
     this.deliveryType,
   });
 
-  // -------------------------------------------------------
-  // Builds the context prefix injected into every question.
-  // This is what makes the chatbot context-aware.
-  // -------------------------------------------------------
   String toPromptPrefix() {
     if (stage == 'pregnancy') {
       final trimStr = trimester != null ? ', Trimester $trimester' : '';
@@ -36,6 +34,6 @@ class ChatContext {
     return 'The user is postpartum$detail.';
   }
 
-  // Which FAQ list to show in the chat UI
+  // FAQ list to show in the chat UI
   bool get isPregnancy => stage == 'pregnancy';
 }

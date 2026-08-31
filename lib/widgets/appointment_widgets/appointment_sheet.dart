@@ -33,11 +33,22 @@ class _AddAppointmentSheetState extends State<AddAppointmentSheet> {
   }
 
   Future<void> _pickDate() async {
+    final now = DateTime.now();
+    var first = now.subtract(const Duration(days: 365));
+    var last = now.add(const Duration(days: 365));
+
+    if (_selectedDate.isBefore(first)) {
+      first = _selectedDate;
+    }
+    if (_selectedDate.isAfter(last)) {
+      last = _selectedDate;
+    }
+
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      firstDate: first,
+      lastDate: last,
     );
     if (picked != null) setState(() => _selectedDate = picked);
   }

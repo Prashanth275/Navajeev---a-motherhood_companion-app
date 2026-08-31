@@ -49,6 +49,7 @@ dependencies:
   firebase_storage: ^12.4.10
   image_cropper: ^9.1.0
   flutter_image_compress: ^2.3.0
+  google_sign_in: ^7.2.0
 
 
 dev_dependencies:
@@ -79,6 +80,9 @@ flutter:
      - assets/who_growth/male/
      - assets/who_growth/female/
      - assets/size_data/trimester_weeks.json
+     - assets/logo.png
+     - assets/ai_logo.png
+     - assets/icons/baby_bottle.png
 
 
 

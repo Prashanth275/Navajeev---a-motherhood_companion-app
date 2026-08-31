@@ -25,86 +25,71 @@ class SideNav extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 200),
         width: width,
         curve: Curves.easeInOut,
         color: AppColors.background,
         child: Column(
           children: [
             // Header
-            AnimatedPadding(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
+            Padding(
               padding: EdgeInsets.fromLTRB(
-                isCollapsed ? 8 : 24,
+                isCollapsed ? 15 : 24,
                 32,
-                isCollapsed ? 8 : 24,
+                isCollapsed ? 15 : 24,
                 24,
               ),
-              child: Row(
-                mainAxisAlignment: isCollapsed
-                    ? MainAxisAlignment.center
-                    : MainAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryAccent,
-                      shape: BoxShape.circle,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const NeverScrollableScrollPhysics(),
+                child: Row(
+                  mainAxisAlignment: isCollapsed
+                      ? MainAxisAlignment.center
+                      : MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Image.asset(
+                        'assets/logo.png',
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.auto_awesome,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                  AnimatedCrossFade(
-                    firstChild: const SizedBox.shrink(),
-                    secondChild: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const NeverScrollableScrollPhysics(),
-                      child: Row(
+                    if (!isCollapsed) ...[
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'NavaJeev',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                                softWrap: false,
-                                overflow: TextOverflow.fade,
-                              ),
-                              Text(
-                                'Motherhood Companion',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.textSecondary,
-                                ),
-                                softWrap: false,
-                                overflow: TextOverflow.fade,
-                              ),
-                            ],
+                        children: const [
+                          Text(
+                            'NavaJeev',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                            softWrap: false,
+                            overflow: TextOverflow.fade,
+                          ),
+                          Text(
+                            'Motherhood Companion',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textSecondary,
+                            ),
+                            softWrap: false,
+                            overflow: TextOverflow.fade,
                           ),
                         ],
                       ),
-                    ),
-                    crossFadeState: isCollapsed
-                        ? CrossFadeState.showFirst
-                        : CrossFadeState.showSecond,
-                    duration: const Duration(
-                      milliseconds: 300,
-                    ), // Slightly longer
-                    alignment: Alignment.centerLeft,
-                    sizeCurve: Curves.easeInOut,
-                  ),
-                ],
+                    ],
+                  ],
+                ),
               ),
             ),
 
@@ -124,9 +109,7 @@ class SideNav extends StatelessWidget {
             ),
 
             // Collapse Button
-            AnimatedPadding(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
+            Padding(
               padding: EdgeInsets.symmetric(
                 vertical: 24,
                 horizontal: isCollapsed ? 0 : 16,
@@ -136,44 +119,32 @@ class SideNav extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: isCollapsed
-                        ? MainAxisAlignment.center
-                        : MainAxisAlignment.start,
-                    children: [
-                      Icon(
-                        isCollapsed ? Icons.chevron_right : Icons.chevron_left,
-                        color: AppColors.primaryAccent,
-                      ),
-                      AnimatedCrossFade(
-                        firstChild: const SizedBox.shrink(),
-                        secondChild: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const NeverScrollableScrollPhysics(),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              SizedBox(width: 8),
-                              Text(
-                                'Collapse',
-                                style: TextStyle(
-                                  color: AppColors.primaryAccent,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                softWrap: false,
-                                overflow: TextOverflow.fade,
-                              ),
-                            ],
-                          ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const NeverScrollableScrollPhysics(),
+                    child: Row(
+                      mainAxisAlignment: isCollapsed
+                          ? MainAxisAlignment.center
+                          : MainAxisAlignment.start,
+                      children: [
+                        Icon(
+                          isCollapsed ? Icons.chevron_right : Icons.chevron_left,
+                          color: AppColors.primaryAccent,
                         ),
-                        crossFadeState: isCollapsed
-                            ? CrossFadeState.showFirst
-                            : CrossFadeState.showSecond,
-                        duration: const Duration(milliseconds: 200),
-                        alignment: Alignment.centerLeft,
-                        sizeCurve: Curves.easeInOut,
-                      ),
-                    ],
+                        if (!isCollapsed) ...[
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Collapse',
+                            style: TextStyle(
+                              color: AppColors.primaryAccent,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            softWrap: false,
+                            overflow: TextOverflow.fade,
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -184,7 +155,7 @@ class SideNav extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(int index, String title, IconData icon) {
+  Widget _buildNavItem(int index, String title, dynamic icon) {
     final bool isSelected = currentIndex == index;
 
     return Container(
@@ -196,9 +167,7 @@ class SideNav extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Tooltip(
             message: isCollapsed ? title : '',
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
+            child: Container(
               padding: EdgeInsets.symmetric(
                 horizontal: isCollapsed ? 8 : 16,
                 vertical: 12,
@@ -217,46 +186,38 @@ class SideNav extends StatelessWidget {
                       ? MainAxisAlignment.center
                       : MainAxisAlignment.start,
                   children: [
-                    Icon(
-                      icon,
-                      size: 22,
-                      color: isSelected
-                          ? AppColors.primaryAccent
-                          : AppColors.textSecondary,
-                    ),
-                    AnimatedCrossFade(
-                      firstChild: const SizedBox.shrink(),
-                      secondChild: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const NeverScrollableScrollPhysics(),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(width: 12),
-                            Text(
-                              title,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w400,
-                                color: isSelected
-                                    ? AppColors.primaryAccent
-                                    : AppColors.textSecondary,
-                              ),
-                              softWrap: false,
-                              overflow: TextOverflow.fade,
-                            ),
-                          ],
+                    icon is IconData
+                        ? Icon(
+                            icon,
+                            size: 22,
+                            color: isSelected
+                                ? AppColors.primaryAccent
+                                : AppColors.textSecondary,
+                          )
+                        : ImageIcon(
+                            AssetImage(icon as String),
+                            size: 22,
+                            color: isSelected
+                                ? AppColors.primaryAccent
+                                : AppColors.textSecondary,
+                          ),
+                    if (!isCollapsed) ...[
+                      const SizedBox(width: 12),
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          color: isSelected
+                              ? AppColors.primaryAccent
+                              : AppColors.textSecondary,
                         ),
+                        softWrap: false,
+                        overflow: TextOverflow.fade,
                       ),
-                      crossFadeState: isCollapsed
-                          ? CrossFadeState.showFirst
-                          : CrossFadeState.showSecond,
-                      duration: const Duration(milliseconds: 200),
-                      alignment: Alignment.centerLeft,
-                      sizeCurve: Curves.easeInOut,
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -270,7 +231,7 @@ class SideNav extends StatelessWidget {
 
 class SideNavItem {
   final String title;
-  final IconData icon;
+  final dynamic icon;
 
   const SideNavItem({required this.title, required this.icon});
 }

@@ -26,6 +26,13 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  void reset() {
+    _context = null;
+    _messages.clear();
+    _isTyping = false;
+    notifyListeners();
+  }
+
   Future<void> send(String userText) async {
     if (_context == null) return;
     if (_isTyping) return;

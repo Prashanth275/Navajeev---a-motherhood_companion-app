@@ -41,7 +41,7 @@ class GrowthHistoryList extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -76,7 +76,7 @@ class GrowthHistoryList extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "${record.weightKg}kg · ${record.lengthCm}cm · ${record.headCircumferenceCm ?? '--'}cm head",
+                          "${record.weightKg != null ? '${record.weightKg}kg' : '--'} · ${record.lengthCm != null ? '${record.lengthCm}cm' : '--'} · ${record.headCircumferenceCm != null ? '${record.headCircumferenceCm}cm' : '--'} head",
                           style: const TextStyle(
                             color: Colors.black54,
                             fontSize: 12,

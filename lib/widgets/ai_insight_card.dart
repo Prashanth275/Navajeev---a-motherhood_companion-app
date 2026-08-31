@@ -40,7 +40,7 @@ class AiInsightCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: _accent(module).withOpacity(0.3),
+            color: _accent(module).withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -57,8 +57,6 @@ class AiInsightCard extends StatelessWidget {
       ),
     );
   }
-
-  // ---- Theming ----
 
   static List<Color> _gradient(String module) {
     switch (module) {
@@ -96,9 +94,7 @@ class AiInsightCard extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------
 // HEADER
-// -------------------------------------------------------
 class _Header extends StatelessWidget {
   final String module;
   final AiInsightResult? result;
@@ -121,7 +117,7 @@ class _Header extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -140,7 +136,7 @@ class _Header extends StatelessWidget {
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 1.2,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
                 Text(
@@ -163,7 +159,7 @@ class _Header extends StatelessWidget {
               onPressed: isLoading ? null : onRefresh,
               icon: Icon(
                 Icons.refresh_rounded,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 size: 20,
               ),
             ),
@@ -173,9 +169,6 @@ class _Header extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------
-// BODY STATES
-// -------------------------------------------------------
 class _LoadingBody extends StatelessWidget {
   const _LoadingBody();
 
@@ -193,7 +186,7 @@ class _LoadingBody extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             'Analysing your data...',
-            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13),
           ),
         ],
       ),
@@ -210,15 +203,12 @@ class _EmptyBody extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: Text(
         'Log some data to get personalised AI insights.',
-        style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13),
+        style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
       ),
     );
   }
 }
 
-// -------------------------------------------------------
-// CONTENT — routes to the right layout per module
-// -------------------------------------------------------
 class _Body extends StatelessWidget {
   final AiInsightResult result;
   const _Body({required this.result});
@@ -235,9 +225,7 @@ class _Body extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------
 // DEFAULT — works for sleep, feeding, growth, dashboard
-// -------------------------------------------------------
 class _DefaultBody extends StatelessWidget {
   final AiInsightResult r;
   const _DefaultBody({required this.r});
@@ -277,9 +265,7 @@ class _DefaultBody extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------
 // TRIMESTER
-// -------------------------------------------------------
 class _TrimesterBody extends StatelessWidget {
   final AiInsightResult r;
   const _TrimesterBody({required this.r});
@@ -304,9 +290,7 @@ class _TrimesterBody extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------
 // WELLBEING
-// -------------------------------------------------------
 class _WellbeingBody extends StatelessWidget {
   final AiInsightResult r;
   const _WellbeingBody({required this.r});
@@ -327,9 +311,9 @@ class _WellbeingBody extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -339,7 +323,7 @@ class _WellbeingBody extends StatelessWidget {
                     child: Text(
                       "You're not alone. Consider speaking to a healthcare provider or counsellor.",
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 13,
                         height: 1.4,
                       ),
@@ -355,9 +339,7 @@ class _WellbeingBody extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------
 // APPOINTMENTS
-// -------------------------------------------------------
 class _AppointmentsBody extends StatelessWidget {
   final AiInsightResult r;
   const _AppointmentsBody({required this.r});
@@ -389,9 +371,7 @@ class _AppointmentsBody extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------
 // NOTIFICATIONS
-// -------------------------------------------------------
 class _NotificationsBody extends StatelessWidget {
   final AiInsightResult r;
   const _NotificationsBody({required this.r});
@@ -400,7 +380,7 @@ class _NotificationsBody extends StatelessWidget {
   Widget build(BuildContext context) {
     if (r.alerts == null || r.alerts!.isEmpty) {
       return Column(children: [
-        _InsightText('Everything looks good — no urgent alerts right now. ✅'),
+        _InsightText('Everything looks good — no urgent alerts right now.'),
         const SizedBox(height: 16),
       ]);
     }
@@ -414,10 +394,6 @@ class _NotificationsBody extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------
-// SHARED SMALL WIDGETS
-// -------------------------------------------------------
-
 class _InsightText extends StatelessWidget {
   final String text;
   const _InsightText(this.text);
@@ -429,7 +405,7 @@ class _InsightText extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.92),
+          color: Colors.white.withValues(alpha: 0.92),
           fontSize: 14,
           height: 1.55,
         ),
@@ -449,7 +425,7 @@ class _Label extends StatelessWidget {
       child: Text(
         text.toUpperCase(),
         style: TextStyle(
-          color: Colors.white.withOpacity(0.6),
+          color: Colors.white.withValues(alpha: 0.6),
           fontSize: 10,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.2,
@@ -475,7 +451,7 @@ class _Bullet extends StatelessWidget {
             child: Container(
               width: 5, height: 5,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 shape: BoxShape.circle,
               ),
             ),
@@ -485,7 +461,7 @@ class _Bullet extends StatelessWidget {
             child: Text(
               text,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.88),
+                color: Colors.white.withValues(alpha: 0.88),
                 fontSize: 13,
                 height: 1.5,
               ),
@@ -506,7 +482,7 @@ class _Chip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.18),
+        color: Colors.white.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -531,9 +507,9 @@ class _SeverityBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
     );
@@ -559,9 +535,9 @@ class _SymptomRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: color.withOpacity(0.5)),
+              border: Border.all(color: color.withValues(alpha: 0.5)),
             ),
             child: Text(s.status.toUpperCase(),
                 style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w700)),
@@ -569,7 +545,7 @@ class _SymptomRow extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text('${s.symptom}: ${s.note}',
-                style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13)),
           ),
         ],
       ),
@@ -593,9 +569,9 @@ class _AlertTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
+          color: color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.35)),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -609,7 +585,7 @@ class _AlertTile extends StatelessWidget {
                   Text(alert.title,
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
                   Text(alert.message,
-                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, height: 1.4)),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12, height: 1.4)),
                 ],
               ),
             ),

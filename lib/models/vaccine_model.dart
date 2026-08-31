@@ -12,7 +12,7 @@ class Vaccine {
   final List<String>? sideEffects;
   final String? care;
 
-  // FACTS (stored)
+  // FACTS
   final DateTime? actualDate;
   final String? notes;
 

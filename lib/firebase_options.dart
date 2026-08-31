@@ -23,15 +23,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
@@ -72,5 +66,24 @@ class DefaultFirebaseOptions {
     authDomain: 'navajeev-e3262.firebaseapp.com',
     storageBucket: 'navajeev-e3262.firebasestorage.app',
     measurementId: 'G-XC21031FKE',
+  );
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDAPtTKg6oBCT3MWs2Nx_-rX29wbvd8nnI',
+    appId: '1:56811257855:ios:67d76be08ba20acb13b1ca',
+    messagingSenderId: '56811257855',
+    projectId: 'navajeev-e3262',
+    storageBucket: 'navajeev-e3262.firebasestorage.app',
+    iosClientId: '56811257855-6h4mudssbcqg4vhu8n5j5m2g372oq0h2.apps.googleusercontent.com',
+    iosBundleId: 'com.example.navajeevm',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyDAPtTKg6oBCT3MWs2Nx_-rX29wbvd8nnI',
+    appId: '1:56811257855:ios:67d76be08ba20acb13b1ca',
+    messagingSenderId: '56811257855',
+    projectId: 'navajeev-e3262',
+    storageBucket: 'navajeev-e3262.firebasestorage.app',
+    iosClientId: '56811257855-6h4mudssbcqg4vhu8n5j5m2g372oq0h2.apps.googleusercontent.com',
+    iosBundleId: 'com.example.navajeevm',
   );
 }

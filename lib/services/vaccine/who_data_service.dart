@@ -34,7 +34,7 @@ class WhoDataService {
   }
 
   static String _path(String gender, WhoMetric metric) {
-    final base = 'who_growth/$gender/';
+    final base = 'assets/who_growth/$gender/';
 
     if (metric == WhoMetric.weightForAge) {
       return '${base}weight_for_age.json';

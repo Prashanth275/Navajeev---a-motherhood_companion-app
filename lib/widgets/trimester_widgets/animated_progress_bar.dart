@@ -79,7 +79,7 @@ class _AnimatedTrimesterProgressState
           child: LinearProgressIndicator(
             value: _animation.value,
             minHeight: 10,
-            backgroundColor: Colors.white.withOpacity(0.3),
+            backgroundColor: Colors.white.withValues(alpha: 0.3),
             valueColor:
             AlwaysStoppedAnimation(widget.progressColor),
           ),

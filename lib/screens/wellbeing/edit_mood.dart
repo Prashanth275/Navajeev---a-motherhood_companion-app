@@ -105,15 +105,21 @@ class _AddEditWellbeingScreenState
                   icon:
                   const Icon(Icons.calendar_today),
                   onPressed: () async {
-                    final picked =
-                    await showDatePicker(
+                    final firstDate = DateTime.now().subtract(const Duration(days: 730));
+                    final lastDate = DateTime.now();
+                    var initialDate = selectedDate;
+
+                    if (initialDate.isBefore(firstDate)) {
+                      initialDate = firstDate;
+                    } else if (initialDate.isAfter(lastDate)) {
+                      initialDate = lastDate;
+                    }
+
+                    final picked = await showDatePicker(
                       context: context,
-                      initialDate:
-                      selectedDate,
-                      firstDate:
-                      DateTime(2020),
-                      lastDate:
-                      DateTime.now(),
+                      initialDate: initialDate,
+                      firstDate: firstDate,
+                      lastDate: lastDate,
                     );
 
                     if (picked != null) {
@@ -272,7 +278,7 @@ class _AddEditWellbeingScreenState
           max: 5,
           divisions: 4,
           activeColor: color,
-          inactiveColor: color.withOpacity(0.15),
+          inactiveColor: color.withValues(alpha: 0.15),
           onChanged: (v) => onChanged(v.round()),
         ),
       ],

@@ -82,6 +82,10 @@ class AppTheme {
         ),
       ),
       labelStyle: const TextStyle(color: AppColors.textSecondary),
+      errorStyle: const TextStyle(
+        color: AppColors.primaryAccent,
+        fontWeight: FontWeight.w500,
+      ),
     ),
 
     // DIVIDER THEME

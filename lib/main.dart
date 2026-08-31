@@ -72,8 +72,7 @@ class MyApp extends StatelessWidget {
             repository: context.read<FeedingRepository>(),
             authService: context.read<AuthService>(),
           )..initialize(),
-          update: (context, auth, previous) =>
-          FeedingProvider(
+          update: (context, auth, previous) => FeedingProvider(
             repository: context.read<FeedingRepository>(),
             authService: auth,
           )..initialize(),

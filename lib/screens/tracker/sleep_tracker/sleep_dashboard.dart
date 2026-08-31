@@ -49,7 +49,6 @@ class _SleepDashboardState extends State<SleepDashboard> {
     final sleepProvider = context.read<SleepProvider>();
     final aiProvider = context.read<AiInsightProvider>();
 
-    // 🔥 Prevent race condition
     if (sleepProvider.isLoading) return;
 
     final allSessions = sleepProvider.sessions;
@@ -103,7 +102,7 @@ class _SleepDashboardState extends State<SleepDashboard> {
     final limitedLogs = sleepLogs.take(5).toList();
     if (limitedLogs.length < 2) return;
 
-    //DEBUG (optional)
+    //DEBUG
      debugPrint("Sleep Logs Sent to AI:");
      debugPrint(sleepLogs.toString());
 

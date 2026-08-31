@@ -44,7 +44,7 @@ class Feeding {
       foodName: map['foodName'] as String?,
       notes: map['notes'] as String?,
 
-      timestamp: (map['timestamp'] as Timestamp).toDate(),
+      timestamp: _parseTimestamp(map['timestamp']),
     );
   }
 
@@ -111,5 +111,12 @@ class Feeding {
     } catch (_) {
       return null;
     }
+  }
+
+  static DateTime _parseTimestamp(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.parse(value);
+    return DateTime.now();
   }
 }

@@ -60,3 +60,6 @@ ios/Pods/
 
 # CMake
 cmake-build-*/
+
+# Firebase CLI cache
+.firebase/

@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 class AiInsightResult {
   final String module;
   final bool success;
@@ -71,45 +73,86 @@ class AiInsightResult {
   });
 
   factory AiInsightResult.fromJson(
-      Map<String, dynamic> json,
-      String module,
-      ) {
-    final r = (json['result'] as Map<String, dynamic>?) ?? json;
+    Map<String, dynamic> json,
+    String module,
+  ) {
+    // 1. Unpack top-level or 'result' field
+    Map<String, dynamic> rootMap = json;
+    final rawResult = json['result'];
+    final extractedResult = _tryExtractMap(rawResult);
+    if (extractedResult != null) {
+      rootMap = extractedResult;
+    }
+
+    // 2. Unpack 'insight' field if it contains nested or stringified JSON
+    Map<String, dynamic>? innerMap;
+    final candidateInsight = rootMap['insight'] ?? json['insight'];
+    if (candidateInsight is String && _looksLikeJson(candidateInsight)) {
+      innerMap = _tryExtractMap(candidateInsight);
+    }
+
+    // Priority for fields: innerMap (from decoded insight JSON) -> rootMap -> json
+    T? getField<T>(String key) {
+      if (innerMap != null && innerMap[key] != null && innerMap[key] is T) {
+        return innerMap[key] as T;
+      }
+      if (rootMap[key] != null && rootMap[key] is T) {
+        return rootMap[key] as T;
+      }
+      if (json[key] != null && json[key] is T) {
+        return json[key] as T;
+      }
+      return null;
+    }
+
+    // Clean insight text so raw JSON syntax is NEVER displayed on UI
+    String? finalInsight;
+    if (innerMap != null && innerMap['insight'] is String) {
+      finalInsight = innerMap['insight'] as String;
+    } else if (candidateInsight is String) {
+      finalInsight = candidateInsight;
+    }
+
+    if (finalInsight != null) {
+      finalInsight = _sanitizeHumanText(finalInsight);
+    }
 
     return AiInsightResult(
       module: module,
-      success: json['success'] as bool? ?? false,
-      insight: r['insight'] as String?,
-      action: r['action'] as String?,
-      severity: r['severity'] as String?,
-      trend: r['trend'] as String?,
-      whoComparison: r['who_comparison'] as String?,
-      frequencyStatus: r['frequency_status'] as String?,
-      tip: r['tip'] as String?,
-      weightStatus: r['weight_status'] as String?,
-      heightStatus: r['height_status'] as String?,
-      milestonePrediction: r['milestone_prediction'] as String?,
-      weekSummary: r['week_summary'] as String?,
-      symptomAssessment: (r['symptom_assessment'] as List?)
-          ?.map((e) => SymptomCheck.fromJson(e as Map<String, dynamic>))
+      success: json['success'] as bool? ?? rootMap['success'] as bool? ?? true,
+      insight: finalInsight,
+      action: getField<String>('action'),
+      severity: getField<String>('severity'),
+      trend: getField<String>('trend'),
+      whoComparison: getField<String>('who_comparison'),
+      frequencyStatus: getField<String>('frequency_status'),
+      tip: getField<String>('tip'),
+      weightStatus: getField<String>('weight_status'),
+      heightStatus: getField<String>('height_status'),
+      milestonePrediction: getField<String>('milestone_prediction'),
+      weekSummary: getField<String>('week_summary'),
+      symptomAssessment: (getField<List>('symptom_assessment'))
+          ?.whereType<Map<String, dynamic>>()
+          .map((e) => SymptomCheck.fromJson(e))
           .toList(),
-      actionItems: (r['action_items'] as List?)
+      actionItems: (getField<List>('action_items'))
           ?.map((e) => e.toString())
           .toList(),
-      copingSuggestion: r['coping_suggestion'] as String?,
-      showHelpline: r['show_helpline'] as bool? ?? false,
+      copingSuggestion: getField<String>('coping_suggestion'),
+      showHelpline: getField<bool>('show_helpline') ?? false,
       questions:
-      (r['questions'] as List?)?.map((e) => e.toString()).toList(),
-      bring: (r['bring'] as List?)?.map((e) => e.toString()).toList(),
+          (getField<List>('questions'))?.map((e) => e.toString()).toList(),
+      bring: (getField<List>('bring'))?.map((e) => e.toString()).toList(),
       urgentItems:
-      (r['urgent_items'] as List?)?.map((e) => e.toString()).toList(),
-      alerts: (r['alerts'] as List?)
-          ?.map((e) => SmartAlert.fromJson(e as Map<String, dynamic>))
+          (getField<List>('urgent_items'))?.map((e) => e.toString()).toList(),
+      alerts: (getField<List>('alerts'))
+          ?.whereType<Map<String, dynamic>>()
+          .map((e) => SmartAlert.fromJson(e))
           .toList(),
       nutritionTips:
-      (r['nutrition_tips'] as List?)?.map((e) => e.toString()).toList(),
-      devActivity: r['dev_activity'] as String?,
-      weeklyFocus: r['weekly_focus'] as String?,
+          (getField<List>('nutrition_tips'))?.map((e) => e.toString()).toList(),
+      devActivity: getField<String>('dev_activity'),
+      weeklyFocus: getField<String>('weekly_focus'),
     );
   }
 
@@ -135,6 +178,150 @@ class AiInsightResult {
         return SeverityLevel.normal;
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Robust helper methods to guarantee no raw JSON leaks to UI
+// ---------------------------------------------------------------------------
+
+bool _looksLikeJson(String text) {
+  final trimmed = text.trim();
+  return trimmed.contains('{') ||
+      trimmed.contains('```json') ||
+      trimmed.contains('"insight":') ||
+      trimmed.contains('"trend":') ||
+      trimmed.contains('"coping_suggestion":') ||
+      trimmed.contains('"action":');
+}
+
+Map<String, dynamic>? _tryExtractMap(dynamic input) {
+  if (input == null) return null;
+  if (input is Map<String, dynamic>) return input;
+  if (input is Map) return Map<String, dynamic>.from(input);
+  if (input is! String) return null;
+
+  String text = input.trim();
+  if (text.isEmpty) return null;
+
+  // 1. Strip markdown code fences if present: ```json ... ``` or ``` ... ```
+  final fenceMatch = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').firstMatch(text);
+  if (fenceMatch != null && fenceMatch.group(1) != null) {
+    text = fenceMatch.group(1)!.trim();
+  }
+
+  // 2. Direct JSON decode
+  try {
+    final decoded = jsonDecode(text);
+    if (decoded is Map<String, dynamic>) return decoded;
+    if (decoded is Map) return Map<String, dynamic>.from(decoded);
+  } catch (_) {}
+
+  // 3. Try finding and extracting outermost { ... }
+  final startBrace = text.indexOf('{');
+  final lastBrace = text.lastIndexOf('}');
+  if (startBrace != -1 && lastBrace > startBrace) {
+    final candidate = text.substring(startBrace, lastBrace + 1).trim();
+    try {
+      final decoded = jsonDecode(candidate);
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+    } catch (_) {}
+  }
+
+  // 4. Try repairing unclosed JSON (e.g. truncated response missing closing brace/quote)
+  if (startBrace != -1) {
+    final candidate = text.substring(startBrace).trim();
+    final repairs = [
+      '$candidate}',
+      '$candidate"}',
+      '$candidate"\n}',
+    ];
+    for (final r in repairs) {
+      try {
+        final decoded = jsonDecode(r);
+        if (decoded is Map<String, dynamic>) return decoded;
+        if (decoded is Map) return Map<String, dynamic>.from(decoded);
+      } catch (_) {}
+    }
+  }
+
+  // 5. Robust Regex Extraction fallback
+  final Map<String, dynamic> fallbackMap = {};
+
+  // Extract string fields: "key": "value"
+  final stringRegex = RegExp(r'"([a-zA-Z0-9_]+)"\s*:\s*"(.*?)(?<!\\)"', dotAll: true);
+  for (final match in stringRegex.allMatches(text)) {
+    final key = match.group(1);
+    final val = match.group(2);
+    if (key != null && val != null) {
+      fallbackMap[key] = val
+          .replaceAll(r'\"', '"')
+          .replaceAll(r'\n', '\n')
+          .replaceAll(r'\r', '')
+          .replaceAll(r'\\', r'\');
+    }
+  }
+
+  // Extract boolean fields: "key": true/false
+  final boolRegex = RegExp(r'"([a-zA-Z0-9_]+)"\s*:\s*(true|false)', caseSensitive: false);
+  for (final match in boolRegex.allMatches(text)) {
+    final key = match.group(1);
+    final val = match.group(2);
+    if (key != null && val != null) {
+      fallbackMap[key] = val.toLowerCase() == 'true';
+    }
+  }
+
+  // Extract list of strings: "key": ["a", "b"]
+  final listRegex = RegExp(r'"([a-zA-Z0-9_]+)"\s*:\s*\[([\s\S]*?)\]');
+  for (final match in listRegex.allMatches(text)) {
+    final key = match.group(1);
+    final innerList = match.group(2);
+    if (key != null && innerList != null) {
+      final items = <String>[];
+      final itemMatches = RegExp(r'"(.*?)(?<!\\)"', dotAll: true).allMatches(innerList);
+      for (final im in itemMatches) {
+        if (im.group(1) != null) {
+          items.add(im.group(1)!
+              .replaceAll(r'\"', '"')
+              .replaceAll(r'\n', '\n')
+              .replaceAll(r'\\', r'\'));
+        }
+      }
+      if (items.isNotEmpty) {
+        fallbackMap[key] = items;
+      }
+    }
+  }
+
+  if (fallbackMap.isNotEmpty) {
+    return fallbackMap;
+  }
+
+  return null;
+}
+
+String _sanitizeHumanText(String text) {
+  String cleaned = text.trim();
+  // Strip markdown code fences if remaining
+  final fenceMatch = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').firstMatch(cleaned);
+  if (fenceMatch != null && fenceMatch.group(1) != null) {
+    cleaned = fenceMatch.group(1)!.trim();
+  }
+  // If it still contains "insight": "...", extract just the value
+  final insightMatch = RegExp(r'"insight"\s*:\s*"(.*?)(?<!\\)"', dotAll: true).firstMatch(cleaned);
+  if (insightMatch != null && insightMatch.group(1) != null) {
+    return insightMatch.group(1)!
+        .replaceAll(r'\"', '"')
+        .replaceAll(r'\n', '\n')
+        .replaceAll(r'\\', r'\')
+        .trim();
+  }
+  // Strip leading { and trailing } if any remain
+  if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+    cleaned = cleaned.substring(1, cleaned.length - 1).trim();
+  }
+  return cleaned;
 }
 
 enum SeverityLevel { normal, watch, urgent }

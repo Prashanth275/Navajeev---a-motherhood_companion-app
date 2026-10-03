@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AiService {
-  final String baseUrl = "http://10.41.84.24:8000";
+  final String baseUrl = "https://ai-engine-for-navajeev.onrender.com";
 
   static const Duration _timeout = Duration(seconds: 30);
 

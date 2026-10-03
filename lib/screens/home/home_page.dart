@@ -6,6 +6,7 @@ import 'package:navajeev_m/screens/tracker/sleep_tracker/sleep_dashboard.dart';
 import 'package:navajeev_m/screens/tracker/trimester_tracker/trimester_tracker_screen.dart';
 import 'package:navajeev_m/widgets/app_widgets/app_header.dart';
 import 'package:navajeev_m/widgets/app_widgets/side_nav.dart';
+import 'package:navajeev_m/widgets/growth_widgets/add_growth_modal.dart';
 import 'package:provider/provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../theme/app_colors.dart';
@@ -50,7 +51,7 @@ class _HomePageState extends State<HomePage> {
         _NavConfig(title: 'Navajeev.ai', icon: Icons.chat_bubble_outline, page: const ChatPage()), // 2
         _NavConfig(title: 'Sleep Tracker', icon: Icons.bedtime_outlined, page: const SleepDashboard()), // 3
         _NavConfig(title: 'Appointments', icon: Icons.calendar_today_outlined, page: const AppointmentsPage()),
-        _NavConfig(title: 'Wellbeing', icon: Icons.favorite_border, page: const WellbeingScreen()),
+        _NavConfig(title: 'Wellbeing Monitor', icon: Icons.favorite_border, page: const WellbeingScreen()),
         _NavConfig(title: 'Profile', icon: Icons.person_outline, page:  ProfilePage()), // 6 (Consistent index)
       ];
     } else {
@@ -59,10 +60,10 @@ class _HomePageState extends State<HomePage> {
         _NavConfig(title: 'Growth Tracker', icon: Icons.show_chart, page: const GrowthHomePage()), // 1
         _NavConfig(title: 'Navajeev.ai', icon: Icons.chat_bubble_outline, page: const ChatPage()), // 2
         _NavConfig(title: 'Feeding', icon: 'assets/icons/baby_bottle.png', page: const FeedingTrackerScreen()), // 3
-        _NavConfig(title: 'Vaccines', icon: Icons.vaccines_outlined, page: const VaccinationTrackerPage()),
+        _NavConfig(title: 'Vaccination Tracker', icon: Icons.vaccines_outlined, page: const VaccinationTrackerPage()),
         _NavConfig(title: 'Sleep Tracker', icon: Icons.bedtime_outlined, page: const SleepDashboard()),
         _NavConfig(title: 'Appointments', icon: Icons.calendar_today_outlined, page: const AppointmentsPage()),
-        _NavConfig(title: 'Wellbeing', icon: Icons.favorite_border, page: const WellbeingScreen()),
+        _NavConfig(title: 'Wellbeing Monitor', icon: Icons.favorite_border, page: const WellbeingScreen()),
         _NavConfig(title: 'Profile', icon: Icons.person_outline, page: ProfilePage()), // 8 (Consistent index)
       ];
     }
@@ -101,11 +102,8 @@ class _HomePageState extends State<HomePage> {
       final weeksLeft = user.pregnancyDetails!.expectedDueDate.difference(DateTime.now()).inDays ~/ 7;
       return weeksLeft > 0 ? '$weeksLeft weeks to go' : 'Due date reached';
     }
-    if (user.isPostpartum && user.babyDetails != null) {
-      final baby = user.babyDetails!;
-      final days = DateTime.now().difference(baby.dateOfBirth).inDays;
-      final months = (days / 30).floor();
-      return '${baby.name} • ${months < 1 ? '$days days old' : '$months months old'}';
+    if (user.isPostpartum) {
+      return 'Your postpartum journey';
     }
     return null;
   }
@@ -188,6 +186,46 @@ class _MobileLayout extends StatelessWidget {
         ),
         title: currentIndex == 0 ? greeting : allPages[currentIndex].title,
         subtitle: currentIndex == 0 ? subtitle : null,
+        actions: allPages[currentIndex].title == 'Growth Tracker'
+            ? [
+                IconButton(
+                  tooltip: 'Add Growth Record',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                    ),
+                    child: const Icon(Icons.add, color: Colors.pink, size: 22),
+                  ),
+                  onPressed: () {
+                    final auth = context.read<AuthService>();
+                    final u = auth.currentUser;
+                    final baby = u?.babyDetails;
+                    final babyId = u?.activeBabyId ?? 'default_baby';
+                    if (baby != null) {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (ctx) => AddGrowthModal(
+                          babyId: babyId,
+                          baby: baby,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Baby profile not found')),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
+              ]
+            : null,
       ),
       drawer: Drawer(
         child: Column(
@@ -234,6 +272,7 @@ class _MobileLayout extends StatelessWidget {
         ),
       ),
       body: SafeArea(
+        top: !isTrimester,
         child: IndexedStack(
           index: currentIndex,
           children: pages,
@@ -298,6 +337,46 @@ class _DesktopLayout extends StatelessWidget {
                 : AppHeader(
               title: currentIndex == 0 ? greeting : allPages[currentIndex].title,
               subtitle: currentIndex == 0 ? subtitle : null,
+              actions: allPages[currentIndex].title == 'Growth Tracker'
+                  ? [
+                      IconButton(
+                        tooltip: 'Add Growth Record',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                        icon: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                          ),
+                          child: const Icon(Icons.add, color: Colors.white, size: 22),
+                        ),
+                        onPressed: () {
+                          final auth = context.read<AuthService>();
+                          final u = auth.currentUser;
+                          final baby = u?.babyDetails;
+                          final babyId = u?.activeBabyId ?? 'default_baby';
+                          if (baby != null) {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (ctx) => AddGrowthModal(
+                                babyId: babyId,
+                                baby: baby,
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Baby profile not found')),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                    ]
+                  : null,
             ),
             body: IndexedStack(index: currentIndex, children: pages),
           ),

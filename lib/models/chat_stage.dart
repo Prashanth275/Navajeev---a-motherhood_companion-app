@@ -36,4 +36,28 @@ class ChatContext {
 
   // FAQ list to show in the chat UI
   bool get isPregnancy => stage == 'pregnancy';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChatContext &&
+          runtimeType == other.runtimeType &&
+          userId == other.userId &&
+          stage == other.stage &&
+          trimester == other.trimester &&
+          babyAgeMonths == other.babyAgeMonths &&
+          babyName == other.babyName &&
+          feedingType == other.feedingType &&
+          deliveryType == other.deliveryType;
+
+  @override
+  int get hashCode => Object.hash(
+        userId,
+        stage,
+        trimester,
+        babyAgeMonths,
+        babyName,
+        feedingType,
+        deliveryType,
+      );
 }

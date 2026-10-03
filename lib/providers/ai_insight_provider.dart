@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import '../models/ai_insight_result.dart';
+import '../models/recommendation_result.dart';
 import '../services/ai_service.dart';
 
 class AiInsightProvider extends ChangeNotifier {
@@ -10,6 +11,12 @@ class AiInsightProvider extends ChangeNotifier {
   final Map<String, AiInsightResult> _results = {};
   final Map<String, bool> _loading = {};
   final Map<String, String?> _errors = {};
+
+  // Typed recommendation state
+  final Map<String, RecommendationResult> _recommendations = {};
+  final Map<String, String> _recommendationHashes = {};
+  final Map<String, bool> _recommendationLoading = {};
+  final Map<String, String?> _recommendationErrors = {};
 
   // NEW KEY (userId + module + subject)
   String _key(String userId, String module, String subject) {
@@ -26,6 +33,19 @@ class AiInsightProvider extends ChangeNotifier {
 
   String? getError(String userId, String module, String subject) {
     return _errors[_key(userId, module, subject)];
+  }
+
+  // Typed getters for Recommendation
+  RecommendationResult? getRecommendation(String userId) {
+    return _recommendations[userId];
+  }
+
+  bool isRecommendationLoading(String userId) {
+    return _recommendationLoading[userId] ?? false;
+  }
+
+  String? getRecommendationError(String userId) {
+    return _recommendationErrors[userId];
   }
 
   Future<void> fetchInsight({
@@ -80,12 +100,32 @@ class AiInsightProvider extends ChangeNotifier {
     String? moodTrend,
     int? pregnancyWeek,
     String? topConcern,
+    bool forceRefresh = false,
   }) async {
 
-    final key = "$userId-recommendation";
+    final payloadMap = {
+      if (babyAgeWeeks != null) 'baby_age_weeks': babyAgeWeeks,
+      if (sleepPattern != null) 'sleep_pattern': sleepPattern,
+      if (feedingPattern != null) 'feeding_pattern': feedingPattern,
+      if (moodTrend != null) 'mood_trend': moodTrend,
+      if (pregnancyWeek != null) 'pregnancy_week': pregnancyWeek,
+      if (topConcern != null) 'top_concern': topConcern,
+    };
 
-    _loading[key] = true;
-    _errors[key] = null;
+    final newHash = jsonEncode(payloadMap);
+
+    if (!forceRefresh &&
+        _recommendations.containsKey(userId) &&
+        _recommendationHashes[userId] == newHash) {
+      return;
+    }
+
+    final legacyKey = "$userId-recommendation";
+
+    _loading[legacyKey] = true;
+    _recommendationLoading[userId] = true;
+    _errors[legacyKey] = null;
+    _recommendationErrors[userId] = null;
     notifyListeners();
 
     try {
@@ -98,16 +138,25 @@ class AiInsightProvider extends ChangeNotifier {
         topConcern: topConcern,
       );
 
-      _results[key] = AiInsightResult.fromJson(
+      final typedResult = RecommendationResult.fromJson(response);
+      _recommendations[userId] = typedResult;
+      _recommendationHashes[userId] = newHash;
+
+      // Also maintain legacy AiInsightResult mapping for backward compatibility
+      _results[legacyKey] = AiInsightResult.fromJson(
         {'success': true, 'result': response['result'] ?? response},
         'recommendation',
       );
 
     } catch (e) {
-      _errors[key] = e.toString();
-      _results[key] = AiInsightResult.error('recommendation', e.toString());
+      final err = e.toString();
+      _errors[legacyKey] = err;
+      _recommendationErrors[userId] = err;
+      _recommendations[userId] = RecommendationResult.error(err);
+      _results[legacyKey] = AiInsightResult.error('recommendation', err);
     } finally {
-      _loading[key] = false;
+      _loading[legacyKey] = false;
+      _recommendationLoading[userId] = false;
       notifyListeners();
     }
   }
@@ -123,6 +172,10 @@ class AiInsightProvider extends ChangeNotifier {
     _results.removeWhere((key, _) => key.startsWith(userId));
     _loading.removeWhere((key, _) => key.startsWith(userId));
     _errors.removeWhere((key, _) => key.startsWith(userId));
+    _recommendations.remove(userId);
+    _recommendationHashes.remove(userId);
+    _recommendationLoading.remove(userId);
+    _recommendationErrors.remove(userId);
     notifyListeners();
   }
 
@@ -130,6 +183,10 @@ class AiInsightProvider extends ChangeNotifier {
     _results.clear();
     _loading.clear();
     _errors.clear();
+    _recommendations.clear();
+    _recommendationHashes.clear();
+    _recommendationLoading.clear();
+    _recommendationErrors.clear();
     notifyListeners();
   }
-}
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
 
 class AppHeader extends StatelessWidget
@@ -21,12 +22,20 @@ class AppHeader extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 400),
-      decoration: BoxDecoration(
-        gradient: gradient ?? AppColors.brandGradient,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
-      child: SafeArea(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
+        decoration: BoxDecoration(
+          gradient: gradient ?? AppColors.brandGradient,
+        ),
+        child: SafeArea(
         child: Padding(
           padding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -71,10 +80,11 @@ class AppHeader extends StatelessWidget
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Size get preferredSize =>
-      Size.fromHeight(subtitle != null ? 80 : 60);
+      Size.fromHeight(subtitle != null ? 80 : 64);
 }

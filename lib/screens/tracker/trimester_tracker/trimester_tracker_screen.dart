@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/trimester/trimester_provider.dart';
 import '../../../widgets/trimester_widgets/babyinfo_card.dart';
@@ -38,6 +39,11 @@ class _TrimesterTrackerScreenState
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,

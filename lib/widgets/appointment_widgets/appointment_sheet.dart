@@ -34,20 +34,20 @@ class _AddAppointmentSheetState extends State<AddAppointmentSheet> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    var first = now.subtract(const Duration(days: 365));
-    var last = now.add(const Duration(days: 365));
+    final today = DateTime(now.year, now.month, now.day);
+    final last = today.add(const Duration(days: 365 * 2));
 
-    if (_selectedDate.isBefore(first)) {
-      first = _selectedDate;
-    }
-    if (_selectedDate.isAfter(last)) {
-      last = _selectedDate;
+    var initial = _selectedDate;
+    if (initial.isBefore(today)) {
+      initial = today;
+    } else if (initial.isAfter(last)) {
+      initial = last;
     }
 
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: first,
+      initialDate: initial,
+      firstDate: today,
       lastDate: last,
     );
     if (picked != null) setState(() => _selectedDate = picked);
@@ -63,6 +63,15 @@ class _AddAppointmentSheetState extends State<AddAppointmentSheet> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (_selectedDate.isBefore(today)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select today or a future date.")),
+      );
+      return;
+    }
 
     setState(() => _isSaving = true);
 

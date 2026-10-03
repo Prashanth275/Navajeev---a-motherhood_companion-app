@@ -21,12 +21,22 @@ import 'services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'providers/ai_insight_provider.dart';
+import 'package:flutter/services.dart';
 import 'package:navajeev_m/screens/onboarding/animated_splash_screen.dart';
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

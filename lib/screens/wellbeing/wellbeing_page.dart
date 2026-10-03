@@ -1,15 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../utils/mood_config.dart';
 import '../../widgets/wellbeing/latest_entries.dart';
 import 'edit_mood.dart';
 import '../../providers/wellbeing/wellbeing_provider.dart';
+import '../../providers/ai_insight_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/wellbeing/weekly_trend_chart.dart';
 import '../../widgets/wellbeing/wellbeing_summary_card.dart';
+import '../../widgets/ai_insight_card.dart';
 
-class WellbeingScreen extends StatelessWidget {
+class WellbeingScreen extends StatefulWidget {
   const WellbeingScreen({super.key});
+
+  @override
+  State<WellbeingScreen> createState() => _WellbeingScreenState();
+}
+
+class _WellbeingScreenState extends State<WellbeingScreen> {
+  String get userId {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception("User not logged in");
+    }
+    return user.uid;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final aiProvider = context.read<AiInsightProvider>();
+      final existing = aiProvider.getResult(userId, 'wellbeing', 'mother');
+
+      if (existing == null) {
+        _fetchInsight();
+      }
+    });
+  }
+
+  Future<void> _fetchInsight({bool forceRefresh = false}) async {
+    final wellbeingProvider = context.read<WellbeingProvider>();
+    final aiProvider = context.read<AiInsightProvider>();
+
+    if (wellbeingProvider.entries.isEmpty) return;
+
+    final correlated = await wellbeingProvider.buildCorrelatedAiPayload(days: 14);
+    final data = correlated['data'] as Map<String, dynamic>?;
+    final moodLogs = data?['mood_logs'] as List?;
+
+    if (moodLogs == null || moodLogs.isEmpty) return;
+
+    aiProvider.fetchInsight(
+      userId: userId,
+      module: 'wellbeing',
+      subject: 'mother',
+      babyAgeWeeks: correlated['baby_age_weeks'] as int?,
+      data: data ?? {},
+      forceRefresh: forceRefresh,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +200,16 @@ class WellbeingScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
                 LatestEntriesSection(entries: entries),
+
+                const SizedBox(height: 24),
+                Consumer<AiInsightProvider>(
+                  builder: (context, aiProvider, _) => AiInsightCard(
+                    module: 'wellbeing',
+                    isLoading: aiProvider.isLoading(userId, 'wellbeing', 'mother'),
+                    result: aiProvider.getResult(userId, 'wellbeing', 'mother'),
+                    onRefresh: () => _fetchInsight(forceRefresh: true),
+                  ),
+                ),
 
                 const SizedBox(height: 40),
               ],

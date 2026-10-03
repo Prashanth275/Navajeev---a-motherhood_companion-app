@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/appointment_model.dart';
+import '../../models/user_model.dart';
+import '../../models/wellbeing/wellbeing_model.dart';
 import '../../providers/Sleep/sleep_providers.dart';
+import '../../providers/ai_insight_provider.dart';
 import '../../providers/feeding/feeding_provider.dart';
 import '../../providers/growth/growth_provider.dart';
 import '../../providers/wellbeing/wellbeing_provider.dart';
-import '../../theme/app_colors.dart';
+import '../../providers/vaccine_providers.dart';
+import '../../repositories/trimester/trimester_repository.dart';
 import '../../../services/auth_service.dart';
-import 'package:navajeev_m/providers/vaccine_providers.dart';
+import '../../utils/age_utils.dart';
 
+import '../ai_recommendation_card.dart';
 import '../app_widgets/primary_card.dart';
 import 'baby_info.dart';
 import 'package:navajeev_m/widgets/home_page_widgets/quick_actions_section.dart';
@@ -38,7 +43,7 @@ class HomeDashboard extends StatelessWidget {
 
   Widget _buildPostpartumDashboard(
       BuildContext context,
-      dynamic user,
+      UserModel? user,
       ) {
     final baby = user?.babyDetails;
     final babyId = user?.activeBabyId;
@@ -79,6 +84,24 @@ class HomeDashboard extends StatelessWidget {
 
     final ageText = _calculateAgeText(baby);
 
+    // Derived fields for recommendation
+    final babyAgeWeeks = dob != null
+        ? AgeUtils.ageInWeeks(dob: dob, onDate: DateTime.now())
+        : null;
+
+    final sleepPattern = sleepProvider.sessions.isNotEmpty
+        ? "${todaySleepHours.toStringAsFixed(1)} hrs/day (${sleepProvider.statusOrQuality})"
+        : null;
+
+    final feedingPattern = todayFeedCount > 0
+        ? "$todayFeedCount feeds today"
+        : (baby?.feedingType != null && baby!.feedingType!.isNotEmpty ? baby.feedingType : null);
+
+    final moodTrend = _deriveMoodTrend(wellbeingProvider.entries, wellbeingProvider);
+    final topConcern = (wellbeingProvider.todayEntry?.notes.trim().isNotEmpty ?? false)
+        ? wellbeingProvider.todayEntry!.notes.trim()
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -95,10 +118,6 @@ class HomeDashboard extends StatelessWidget {
               ? "${baby.dateOfBirth.day}/${baby.dateOfBirth.month}/${baby.dateOfBirth.year}"
               : "--",
         ),
-
-        const SizedBox(height: 24),
-
-        _buildDailyWisdom(context),
 
         const SizedBox(height: 24),
 
@@ -129,6 +148,19 @@ class HomeDashboard extends StatelessWidget {
 
         const SizedBox(height: 24),
 
+        if (user != null)
+          _HomeRecommendationSection(
+            user: user,
+            isPregnancy: false,
+            babyAgeWeeks: babyAgeWeeks,
+            sleepPattern: sleepPattern,
+            feedingPattern: feedingPattern,
+            moodTrend: moodTrend,
+            topConcern: topConcern,
+          ),
+
+        const SizedBox(height: 24),
+
         TodayOverviewCard(
           feeds: todayFeedCount,
           sleepHours: todaySleepHours,
@@ -137,25 +169,24 @@ class HomeDashboard extends StatelessWidget {
 
         const SizedBox(height: 24),
 
-        if (babyId != null)
-          StreamBuilder<List<Appointment>>(
-            stream: auth.getAppointments(babyId),
-            builder: (context, snapshot) {
-              final appointments =
-                  snapshot.data ?? [];
+        StreamBuilder<List<Appointment>>(
+          stream: auth.getAppointments(babyId),
+          builder: (context, snapshot) {
+            final appointments =
+                snapshot.data ?? [];
 
-              final reminders = _buildReminders(
-                appointments: appointments,
-                nextVaccine:
-                vaccineProvider.nextUpcomingVaccine,
-                dob: dob,
-              );
+            final reminders = _buildReminders(
+              appointments: appointments,
+              nextVaccine:
+              vaccineProvider.nextUpcomingVaccine,
+              dob: dob,
+            );
 
-              return UpcomingRemindersSection(
-                reminders: reminders,
-              );
-            },
-          ),
+            return UpcomingRemindersSection(
+              reminders: reminders,
+            );
+          },
+        ),
 
         const SizedBox(height: 24),
 
@@ -174,7 +205,7 @@ class HomeDashboard extends StatelessWidget {
 
   Widget _buildPregnancyDashboard(
       BuildContext context,
-      dynamic user,
+      UserModel? user,
       ) {
 
     final pregnancy = user?.pregnancyDetails;
@@ -196,15 +227,30 @@ class HomeDashboard extends StatelessWidget {
     final dueDate =
         pregnancy?.expectedDueDate;
 
-    final week =
-    _calculatePregnancyWeek(dueDate);
+    final week = dueDate != null
+        ? TrimesterRepository().calculateCurrentWeek(dueDate)
+        : null;
 
-    final trimester =
-    _getTrimester(week);
+    final trimesterNum = week != null
+        ? TrimesterRepository().mapWeekToTrimester(week)
+        : null;
+
+    final trimester = trimesterNum != null
+        ? (trimesterNum == 1 ? "1st Trimester" : trimesterNum == 2 ? "2nd Trimester" : "3rd Trimester")
+        : null;
 
     final weeksLeft =
     dueDate != null
         ? dueDate.difference(DateTime.now()).inDays ~/ 7
+        : null;
+
+    final sleepPattern = sleepProvider.sessions.isNotEmpty
+        ? "${todaySleepHours.toStringAsFixed(1)} hrs/day (${sleepProvider.statusOrQuality})"
+        : null;
+
+    final moodTrend = _deriveMoodTrend(wellbeingProvider.entries, wellbeingProvider);
+    final topConcern = (wellbeingProvider.todayEntry?.notes.trim().isNotEmpty ?? false)
+        ? wellbeingProvider.todayEntry!.notes.trim()
         : null;
 
     return Column(
@@ -268,10 +314,6 @@ class HomeDashboard extends StatelessWidget {
 
         const SizedBox(height: 24),
 
-        _buildDailyWisdom(context),
-
-        const SizedBox(height: 24),
-
         QuickActionsSection(
           actions: [
             QuickActionItem(
@@ -294,6 +336,19 @@ class HomeDashboard extends StatelessWidget {
 
         const SizedBox(height: 24),
 
+        if (user != null)
+          _HomeRecommendationSection(
+            user: user,
+            isPregnancy: true,
+            pregnancyWeek: week,
+            trimester: trimester,
+            sleepPattern: sleepPattern,
+            moodTrend: moodTrend,
+            topConcern: topConcern,
+          ),
+
+        const SizedBox(height: 24),
+
         TodayOverviewCard(
           feeds: 0,
           sleepHours: todaySleepHours,
@@ -302,24 +357,22 @@ class HomeDashboard extends StatelessWidget {
 
         const SizedBox(height: 24),
 
-        if (babyId != null)
-          StreamBuilder<List<Appointment>>(
-            stream: auth.getAppointments(babyId),
-            builder: (context, snapshot) {
+        StreamBuilder<List<Appointment>>(
+          stream: auth.getAppointments(babyId),
+          builder: (context, snapshot) {
+            final appointments =
+                snapshot.data ?? [];
 
-              final appointments =
-                  snapshot.data ?? [];
+            final reminders =
+            _buildPregnancyReminders(
+              appointments,
+            );
 
-              final reminders =
-              _buildPregnancyReminders(
-                appointments,
-              );
-
-              return UpcomingRemindersSection(
-                reminders: reminders,
-              );
-            },
-          ),
+            return UpcomingRemindersSection(
+              reminders: reminders,
+            );
+          },
+        ),
 
         const SizedBox(height: 24),
 
@@ -336,29 +389,12 @@ class HomeDashboard extends StatelessWidget {
 
   // HELPERS
 
-  static int? _calculatePregnancyWeek(
-      DateTime? dueDate) {
-    if (dueDate == null) return null;
-
-    final now = DateTime.now();
-    final totalWeeks = 40;
-
-    final weeksLeft =
-        dueDate.difference(now).inDays ~/ 7;
-
-    return totalWeeks - weeksLeft;
-  }
-
-  static String? _getTrimester(int? week) {
-    if (week == null) return null;
-
-    if (week <= 13) {
-      return "1st";
-    } else if (week <= 27) {
-      return "2nd";
-    } else {
-      return "3rd";
-    }
+  static String? _deriveMoodTrend(List<WellbeingEntry> entries, WellbeingProvider provider) {
+    if (entries.isEmpty) return null;
+    final avg = provider.calculateWeeklyMoodAverage(entries);
+    if (avg >= 3.8) return "improving";
+    if (avg <= 2.2) return "declining";
+    return "stable";
   }
 
   static Widget _progressItem(
@@ -386,44 +422,7 @@ class HomeDashboard extends StatelessWidget {
     );
   }
 
-  static Widget _buildDailyWisdom(
-      BuildContext context) {
-    return PrimaryCard(
-      backgroundColor:
-      AppColors.tipCardBackground
-          .withValues(alpha: 0.7),
-      child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.lightbulb_outline,
-                color: AppColors.tipIcon,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Daily Wisdom',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Stay hydrated and prioritize rest.',
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium,
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String _calculateAgeText(baby) {
+  static String _calculateAgeText(BabyDetails? baby) {
     if (baby == null) return "No baby";
 
     final now = DateTime.now();
@@ -458,8 +457,15 @@ class HomeDashboard extends StatelessWidget {
       if (!appt.isCompleted &&
           appt.scheduledAt
               .isAfter(DateTime.now())) {
+        final title = appt.doctorName.trim().isNotEmpty
+            ? appt.doctorName.trim()
+            : (appt.reason.trim().isNotEmpty
+                ? appt.reason.trim()
+                : (appt.hospitalName.trim().isNotEmpty
+                    ? appt.hospitalName.trim()
+                    : "Doctor Checkup"));
         reminders.add({
-          "title": appt.doctorName,
+          "title": title,
           "date": appt.scheduledAt,
           "type": "checkup",
         });
@@ -486,8 +492,15 @@ class HomeDashboard extends StatelessWidget {
       if (!appt.isCompleted &&
           appt.scheduledAt
               .isAfter(DateTime.now())) {
+        final title = appt.doctorName.trim().isNotEmpty
+            ? appt.doctorName.trim()
+            : (appt.reason.trim().isNotEmpty
+                ? appt.reason.trim()
+                : (appt.hospitalName.trim().isNotEmpty
+                    ? appt.hospitalName.trim()
+                    : "Prenatal Visit"));
         reminders.add({
-          "title": appt.doctorName,
+          "title": title,
           "date": appt.scheduledAt,
           "type": "checkup",
         });
@@ -521,3 +534,77 @@ class HomeDashboard extends StatelessWidget {
     }
   }
 }
+
+class _HomeRecommendationSection extends StatefulWidget {
+  final UserModel user;
+  final bool isPregnancy;
+  final int? pregnancyWeek;
+  final String? trimester;
+  final int? babyAgeWeeks;
+  final String? sleepPattern;
+  final String? feedingPattern;
+  final String? moodTrend;
+  final String? topConcern;
+
+  const _HomeRecommendationSection({
+    required this.user,
+    required this.isPregnancy,
+    this.pregnancyWeek,
+    this.trimester,
+    this.babyAgeWeeks,
+    this.sleepPattern,
+    this.feedingPattern,
+    this.moodTrend,
+    this.topConcern,
+  });
+
+  @override
+  State<_HomeRecommendationSection> createState() => _HomeRecommendationSectionState();
+}
+
+class _HomeRecommendationSectionState extends State<_HomeRecommendationSection> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchRecommendation();
+    });
+  }
+
+  void _fetchRecommendation({bool forceRefresh = false}) {
+    if (!mounted) return;
+    final aiProvider = context.read<AiInsightProvider>();
+    final existing = aiProvider.getRecommendation(widget.user.id);
+
+    if (existing == null || forceRefresh) {
+      aiProvider.fetchRecommendation(
+        userId: widget.user.id,
+        babyAgeWeeks: widget.isPregnancy ? null : widget.babyAgeWeeks,
+        pregnancyWeek: widget.isPregnancy ? widget.pregnancyWeek : null,
+        sleepPattern: widget.sleepPattern,
+        feedingPattern: widget.isPregnancy ? null : widget.feedingPattern,
+        moodTrend: widget.moodTrend,
+        topConcern: widget.topConcern,
+        forceRefresh: forceRefresh,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final aiProvider = context.watch<AiInsightProvider>();
+    final isLoading = aiProvider.isRecommendationLoading(widget.user.id);
+    final result = aiProvider.getRecommendation(widget.user.id);
+    final error = aiProvider.getRecommendationError(widget.user.id);
+
+    return AiRecommendationCard(
+      isPregnancy: widget.isPregnancy,
+      stageNumber: widget.isPregnancy ? widget.pregnancyWeek : widget.babyAgeWeeks,
+      trimester: widget.trimester,
+      isLoading: isLoading,
+      result: result,
+      errorMessage: error,
+      onRefresh: () => _fetchRecommendation(forceRefresh: true),
+    );
+  }
+}

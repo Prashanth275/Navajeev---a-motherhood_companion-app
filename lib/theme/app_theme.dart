@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'app_colors.dart';
 
 class AppTheme {
@@ -23,6 +24,13 @@ class AppTheme {
       backgroundColor: Colors.transparent,
       elevation: 0,
       foregroundColor: AppColors.textPrimary,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
       titleTextStyle: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,

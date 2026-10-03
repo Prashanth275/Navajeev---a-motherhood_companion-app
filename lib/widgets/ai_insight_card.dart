@@ -64,7 +64,7 @@ class AiInsightCard extends StatelessWidget {
       case 'feeding':      return [const Color(0xFFE8926B), const Color(0xFFC97050)];
       case 'growth':       return [const Color(0xFF7A9E87), const Color(0xFF4A7E57)];
       case 'trimester':    return [const Color(0xFFE8748A), const Color(0xFFC85070)];
-      case 'wellbeing':    return [const Color(0xFF7BB8C9), const Color(0xFF4A90A4)];
+      case 'wellbeing':    return [const Color(0xFFE57399), const Color(0xFFB83B68)];
       case 'appointments': return [const Color(0xFF8B6EC4), const Color(0xFF6050A0)];
       case 'notifications':return [const Color(0xFF5A9E7A), const Color(0xFF3A7E5A)];
       default:             return [const Color(0xFFC9956B), const Color(0xFFA07040)];

@@ -71,16 +71,6 @@ class _VaccinationTrackerPageState extends State<VaccinationTrackerPage> {
     final user = auth.currentUser;
     final baby = user?.babyDetails;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Vaccination Tracker'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        titleTextStyle: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
       body: Consumer<VaccineProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -108,7 +98,7 @@ class _VaccinationTrackerPageState extends State<VaccinationTrackerPage> {
           final babyDob = user!.babyDob!;
 
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
             children: [
               _buildProgressBar(provider),
               const SizedBox(height: 24),

@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/trimester/trimester_provider.dart';
 import '../../services/auth_service.dart';
@@ -53,29 +54,75 @@ class _EditProfilePageState extends State<EditProfilePage> {
         selectedDate = DateTime.parse(baby!['dob']);
       }
     }
+
+    if (!kIsWeb) {
+      _retrieveLostData();
+    }
   }
 
-  Future<void> pickAndUploadImage(
-      ImageSource source,
-      ) async {
-    final picker = ImagePicker();
-
-    final pickedFile = await picker.pickImage(
-      source: source,
-      imageQuality: 75,
-    );
-
-    if (pickedFile == null) return;
-
-    final bytes = await pickedFile.readAsBytes();
-
-    setState(() {
-      _localImageFile = pickedFile;
-      _imageBytes = bytes;
-      _isUploadingImage = true;
-    });
-
+  Future<void> _retrieveLostData() async {
     try {
+      final picker = ImagePicker();
+      final LostDataResponse response = await picker.retrieveLostData();
+      if (response.isEmpty) return;
+
+      if (response.file != null) {
+        debugPrint('[PROFILE CAMERA] Recovered lost camera photo from Android activity recreation');
+        await _processAndUploadXFile(response.file!, 'CAMERA');
+      } else if (response.exception != null) {
+        debugPrint('[PROFILE CAMERA] Lost data recovery exception: ${response.exception}');
+      }
+    } catch (e) {
+      debugPrint('[PROFILE CAMERA] retrieveLostData error: $e');
+    }
+  }
+
+  Future<void> pickAndUploadImage(ImageSource source) async {
+    final String sourceName = source == ImageSource.camera ? 'CAMERA' : 'GALLERY';
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        imageQuality: 75,
+      );
+
+      if (pickedFile == null) {
+        debugPrint('[PROFILE $sourceName] Picker returned null / cancelled by user');
+        return;
+      }
+
+      await _processAndUploadXFile(pickedFile, sourceName);
+    } catch (e) {
+      debugPrint('[PROFILE $sourceName] Pick error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to pick image: $e")),
+        );
+      }
+    }
+  }
+
+  Future<void> _processAndUploadXFile(XFile pickedFile, String sourceName) async {
+    try {
+      debugPrint('[PROFILE $sourceName] Photo captured');
+      debugPrint('[PROFILE $sourceName] Path: ${pickedFile.path}');
+
+      final bytes = await pickedFile.readAsBytes();
+      debugPrint('[PROFILE $sourceName] File exists: true');
+      debugPrint('[PROFILE $sourceName] File size: ${bytes.length} bytes');
+
+      if (bytes.isEmpty) {
+        throw Exception('Captured image is empty (0 bytes)');
+      }
+
+      setState(() {
+        _localImageFile = pickedFile;
+        _imageBytes = bytes;
+        _isUploadingImage = true;
+      });
+
+      debugPrint('[PROFILE $sourceName] Upload started');
+
       const cloudName = "mu0oqkpd";
       const uploadPreset = "profile_upload";
 
@@ -84,53 +131,58 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
 
       final request = http.MultipartRequest("POST", uri);
-
       request.fields["upload_preset"] = uploadPreset;
 
-      if (kIsWeb) {
-        request.files.add(
-          http.MultipartFile.fromBytes(
-            "file",
-            bytes,
-            filename: pickedFile.name,
-          ),
-        );
-      } else {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            "file",
-            pickedFile.path,
-          ),
-        );
+      String fileName = pickedFile.name;
+      if (fileName.isEmpty || !fileName.contains('.')) {
+        fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
       }
 
-      final response = await request.send();
+      String ext = fileName.split('.').last.toLowerCase();
+      if (ext == 'jpg') ext = 'jpeg';
+      final mediaType = (ext == 'png' || ext == 'jpeg' || ext == 'webp')
+          ? MediaType('image', ext)
+          : MediaType('image', 'jpeg');
 
-      final responseData =
-      jsonDecode(await response.stream.bytesToString());
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "file",
+          bytes,
+          filename: fileName,
+          contentType: mediaType,
+        ),
+      );
 
-      if (response.statusCode == 200) {
+      final streamedResponse = await request.send();
+      final responseBody = await streamedResponse.stream.bytesToString();
+      final responseData = jsonDecode(responseBody);
+
+      if (streamedResponse.statusCode == 200 && responseData["secure_url"] != null) {
+        final secureUrl = responseData["secure_url"] as String;
+        debugPrint('[PROFILE $sourceName] Upload successful');
+        debugPrint('[PROFILE $sourceName] Download URL obtained: $secureUrl');
+
+        if (mounted) {
+          setState(() {
+            imageUrl = secureUrl;
+            _localImageFile = null;
+            _isUploadingImage = false;
+          });
+        }
+        debugPrint('[PROFILE $sourceName] Profile updated');
+      } else {
+        final errorMsg = responseData["error"]?["message"] ?? "HTTP status: ${streamedResponse.statusCode}";
+        throw Exception(errorMsg);
+      }
+    } catch (e) {
+      debugPrint('[PROFILE $sourceName] Upload failed: $e');
+      if (mounted) {
         setState(() {
-          imageUrl = responseData["secure_url"];
-
-          _imageBytes = null;
           _localImageFile = null;
-
+          _imageBytes = null;
           _isUploadingImage = false;
         });
 
-        debugPrint("Cloudinary URL: $imageUrl");
-      } else {
-        throw Exception(responseData["error"]["message"]);
-      }
-    } catch (e) {
-      setState(() {
-        _localImageFile = null;
-        _imageBytes = null;
-        _isUploadingImage = false;
-      });
-
-      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Image upload failed: $e"),

@@ -76,7 +76,6 @@ class AiInsightResult {
     Map<String, dynamic> json,
     String module,
   ) {
-    // 1. Unpack top-level or 'result' field
     Map<String, dynamic> rootMap = json;
     final rawResult = json['result'];
     final extractedResult = _tryExtractMap(rawResult);
@@ -84,14 +83,12 @@ class AiInsightResult {
       rootMap = extractedResult;
     }
 
-    // 2. Unpack 'insight' field if it contains nested or stringified JSON
     Map<String, dynamic>? innerMap;
     final candidateInsight = rootMap['insight'] ?? json['insight'];
     if (candidateInsight is String && _looksLikeJson(candidateInsight)) {
       innerMap = _tryExtractMap(candidateInsight);
     }
 
-    // Priority for fields: innerMap (from decoded insight JSON) -> rootMap -> json
     T? getField<T>(String key) {
       if (innerMap != null && innerMap[key] != null && innerMap[key] is T) {
         return innerMap[key] as T;
@@ -164,7 +161,6 @@ class AiInsightResult {
     );
   }
 
-  // Converts severity string to an enum for easy UI logic
   SeverityLevel get severityLevel {
     switch (severity) {
       case 'watch':
@@ -180,9 +176,7 @@ class AiInsightResult {
   }
 }
 
-// ---------------------------------------------------------------------------
 // Robust helper methods to guarantee no raw JSON leaks to UI
-// ---------------------------------------------------------------------------
 
 bool _looksLikeJson(String text) {
   final trimmed = text.trim();
@@ -203,20 +197,17 @@ Map<String, dynamic>? _tryExtractMap(dynamic input) {
   String text = input.trim();
   if (text.isEmpty) return null;
 
-  // 1. Strip markdown code fences if present: ```json ... ``` or ``` ... ```
   final fenceMatch = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').firstMatch(text);
   if (fenceMatch != null && fenceMatch.group(1) != null) {
     text = fenceMatch.group(1)!.trim();
   }
 
-  // 2. Direct JSON decode
   try {
     final decoded = jsonDecode(text);
     if (decoded is Map<String, dynamic>) return decoded;
     if (decoded is Map) return Map<String, dynamic>.from(decoded);
   } catch (_) {}
 
-  // 3. Try finding and extracting outermost { ... }
   final startBrace = text.indexOf('{');
   final lastBrace = text.lastIndexOf('}');
   if (startBrace != -1 && lastBrace > startBrace) {
@@ -228,7 +219,6 @@ Map<String, dynamic>? _tryExtractMap(dynamic input) {
     } catch (_) {}
   }
 
-  // 4. Try repairing unclosed JSON (e.g. truncated response missing closing brace/quote)
   if (startBrace != -1) {
     final candidate = text.substring(startBrace).trim();
     final repairs = [
@@ -245,10 +235,8 @@ Map<String, dynamic>? _tryExtractMap(dynamic input) {
     }
   }
 
-  // 5. Robust Regex Extraction fallback
   final Map<String, dynamic> fallbackMap = {};
 
-  // Extract string fields: "key": "value"
   final stringRegex = RegExp(r'"([a-zA-Z0-9_]+)"\s*:\s*"(.*?)(?<!\\)"', dotAll: true);
   for (final match in stringRegex.allMatches(text)) {
     final key = match.group(1);
@@ -262,7 +250,6 @@ Map<String, dynamic>? _tryExtractMap(dynamic input) {
     }
   }
 
-  // Extract boolean fields: "key": true/false
   final boolRegex = RegExp(r'"([a-zA-Z0-9_]+)"\s*:\s*(true|false)', caseSensitive: false);
   for (final match in boolRegex.allMatches(text)) {
     final key = match.group(1);
@@ -272,7 +259,6 @@ Map<String, dynamic>? _tryExtractMap(dynamic input) {
     }
   }
 
-  // Extract list of strings: "key": ["a", "b"]
   final listRegex = RegExp(r'"([a-zA-Z0-9_]+)"\s*:\s*\[([\s\S]*?)\]');
   for (final match in listRegex.allMatches(text)) {
     final key = match.group(1);
@@ -303,12 +289,10 @@ Map<String, dynamic>? _tryExtractMap(dynamic input) {
 
 String _sanitizeHumanText(String text) {
   String cleaned = text.trim();
-  // Strip markdown code fences if remaining
   final fenceMatch = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').firstMatch(cleaned);
   if (fenceMatch != null && fenceMatch.group(1) != null) {
     cleaned = fenceMatch.group(1)!.trim();
   }
-  // If it still contains "insight": "...", extract just the value
   final insightMatch = RegExp(r'"insight"\s*:\s*"(.*?)(?<!\\)"', dotAll: true).firstMatch(cleaned);
   if (insightMatch != null && insightMatch.group(1) != null) {
     return insightMatch.group(1)!
@@ -317,7 +301,6 @@ String _sanitizeHumanText(String text) {
         .replaceAll(r'\\', r'\')
         .trim();
   }
-  // Strip leading { and trailing } if any remain
   if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
     cleaned = cleaned.substring(1, cleaned.length - 1).trim();
   }

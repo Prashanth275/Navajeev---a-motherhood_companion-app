@@ -20,6 +20,7 @@ class AuthService extends ChangeNotifier {
   bool _isLoading = true;
   bool _fetchingUser = false;
   bool _isDeletingAccount = false;
+  bool _isInitializing = true;
 
 
   bool get isLoading => _isLoading;
@@ -40,7 +41,48 @@ class AuthService extends ChangeNotifier {
   }
 
   AuthService() {
+    _firebaseUser = _auth.currentUser;
+    _init();
+  }
+
+  Future<void> _init() async {
+    _isLoading = true;
+    _isInitializing = true;
+
+    if (kIsWeb) {
+      try {
+        await _auth.setPersistence(Persistence.LOCAL);
+      } catch (e) {
+        debugPrint('FirebaseAuth setPersistence error: $e');
+      }
+    }
+
     _auth.authStateChanges().listen(_onAuthStateChanged);
+
+    User? user = _auth.currentUser;
+
+    if (user == null) {
+      try {
+        user = await _auth
+            .authStateChanges()
+            .firstWhere((u) => u != null)
+            .timeout(const Duration(milliseconds: 1200));
+      } catch (_) {
+        user = _auth.currentUser;
+      }
+    }
+
+    _isInitializing = false;
+
+    if (user != null) {
+      _firebaseUser = user;
+      await _loadUserData(user);
+    } else {
+      _firebaseUser = null;
+      _currentUser = null;
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> _onAuthStateChanged(User? user) async {
@@ -56,13 +98,8 @@ class AuthService extends ChangeNotifier {
       return;
     }
 
-    if (user != null && !user.emailVerified) {
-      try {
-        await user.reload();
-        user = _auth.currentUser;
-      } catch (e) {
-        debugPrint('Error reloading user on auth change: $e');
-      }
+    if (user == null && _isInitializing) {
+      return;
     }
 
     // Case 1: Logged out
@@ -74,14 +111,33 @@ class AuthService extends ChangeNotifier {
       notifyListeners();
       return;
     }
+
     if (_firebaseUser?.uid == user.uid && (_fetchingUser || _currentUser != null)) {
       return;
     }
 
-    _firebaseUser = user;
+    await _loadUserData(user);
+  }
+
+  Future<void> _loadUserData(User user) async {
+    if (_fetchingUser) return;
     _fetchingUser = true;
+    _firebaseUser = user;
     _isLoading = true;
     notifyListeners();
+
+    if (!user.emailVerified) {
+      try {
+        await user.reload();
+        final refreshedUser = _auth.currentUser;
+        if (refreshedUser != null) {
+          user = refreshedUser;
+          _firebaseUser = refreshedUser;
+        }
+      } catch (e) {
+        debugPrint('Error reloading user on auth change: $e');
+      }
+    }
 
     try {
       DocumentSnapshot<Map<String, dynamic>>? doc;
@@ -97,12 +153,12 @@ class AuthService extends ChangeNotifier {
             await Future.delayed(Duration(milliseconds: 500 * retries));
             continue;
           }
-          debugPrint('❌ _onAuthStateChanged user fetch error: $e');
+          debugPrint('❌ _loadUserData fetch error: $e');
           break;
         }
       }
 
-      if (doc == null || !doc.exists) {
+      if (doc != null && !doc.exists) {
         await _db.collection('users').doc(user.uid).set({
           'stage': UserStage.onboarding.name,
           'created_at': FieldValue.serverTimestamp(),
@@ -130,6 +186,8 @@ class AuthService extends ChangeNotifier {
 
         _currentUser = userModel;
       }
+    } catch (e) {
+      debugPrint('❌ _loadUserData error: $e');
     } finally {
       _fetchingUser = false;
       _isLoading = false;
@@ -181,14 +239,8 @@ class AuthService extends ChangeNotifier {
       await GoogleSignIn.instance.initialize(
         serverClientId: '56811257855-2sgg4gk7b20f56r5mqke3sc5bu6dca47.apps.googleusercontent.com',
       );
-      final GoogleSignInAccount? googleUser = await GoogleSignIn.instance.authenticate();
-      if (googleUser == null) {
-        throw FirebaseAuthException(
-          code: 'popup-closed-by-user',
-          message: 'Google sign-in was cancelled by the user.',
-        );
-      }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final googleUser = await GoogleSignIn.instance.authenticate();
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
       );
@@ -527,8 +579,14 @@ class AuthService extends ChangeNotifier {
     return UserModel(
       id: doc.id,
       name: data['name'] ?? '',
-      role: ParentRole.values.byName(data['role'] ?? 'mother'),
-      stage: UserStage.values.byName(data['stage']),
+      role: ParentRole.values.firstWhere(
+        (r) => r.name == data['role'],
+        orElse: () => ParentRole.mother,
+      ),
+      stage: UserStage.values.firstWhere(
+        (s) => s.name == data['stage'],
+        orElse: () => UserStage.onboarding,
+      ),
       activeBabyId: data['active_baby_id'] ?? data['activeBabyId'],
       pregnancyDetails: pregnancy,
       partnerDetails: partner,

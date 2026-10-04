@@ -22,7 +22,9 @@ class _TrimesterTrackerScreenState
   void initState() {
     super.initState();
     Future.microtask(() {
-      context.read<TrimesterProvider>().initialize();
+      if (mounted) {
+        context.read<TrimesterProvider>().initialize();
+      }
     });
   }
 
@@ -140,7 +142,9 @@ class _TrimesterTrackerScreenState
     switch (trimester) {
       case 1:
         return const LinearGradient(
-          colors: [Color(0xFFF8BBD0), Color(0xFFF48FB1)],
+          colors: [Color(0xFFFBA4DD), Color(0xFFFF7BDD)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         );
       case 2:
         return const LinearGradient(

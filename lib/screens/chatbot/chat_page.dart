@@ -21,7 +21,7 @@ class _ChatPageState extends State<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _controller = TextEditingController();
 
-  // FAQ lists (exactly 8 questions each)
+  // FAQ lists
   final List<String> pregnancyFaq = [
     "What foods should I eat?",
     "Is it safe to exercise during pregnancy?",
@@ -38,7 +38,7 @@ class _ChatPageState extends State<ChatPage> {
     "Why does my baby wake up at night?",
     "How can I support my wellbeing after giving birth?",
     "How to increase breast milk supply?",
-    "How to soothe a crying baby?",
+    "How to soothe my crying baby?",
     "What baby clothes are recommended for my baby?",
     "What skin changes are normal in newborns?",
     "What checkups should I have after giving birth?",
@@ -122,9 +122,7 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  // FAQ glass cards (4x2 grid on desktop/web/Windows, responsive on tablet/mobile)
   Widget _buildFAQChips(ChatProvider chat) {
-    // Hide after first user message
     if (chat.messages.length > 1) return const SizedBox.shrink();
 
     final isPregnancy = chat.context?.isPregnancy ?? false;

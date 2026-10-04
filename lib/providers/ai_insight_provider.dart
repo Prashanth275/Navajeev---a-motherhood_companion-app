@@ -142,7 +142,6 @@ class AiInsightProvider extends ChangeNotifier {
       _recommendations[userId] = typedResult;
       _recommendationHashes[userId] = newHash;
 
-      // Also maintain legacy AiInsightResult mapping for backward compatibility
       _results[legacyKey] = AiInsightResult.fromJson(
         {'success': true, 'result': response['result'] ?? response},
         'recommendation',
@@ -189,4 +188,4 @@ class AiInsightProvider extends ChangeNotifier {
     _recommendationErrors.clear();
     notifyListeners();
   }
-}
+}

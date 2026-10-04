@@ -56,7 +56,6 @@ class ChatProvider extends ChangeNotifier {
     _isTyping = true;
     _messages.add(ChatMessage(sender: ChatSender.user, text: trimmed));
 
-    // Add ONE bot placeholder message; empty text indicates loading state
     final botMessageIndex = _messages.length;
     _messages.add(const ChatMessage(sender: ChatSender.bot, text: ''));
     notifyListeners();
@@ -114,7 +113,6 @@ class ChatProvider extends ChangeNotifier {
   static String cleanDocumentPhrases(String text) {
     var cleaned = text;
 
-    // 1. Preamble clauses: ", taken straight from the information in the document:" -> ":"
     cleaned = cleaned.replaceAll(
       RegExp(
         r',\s*(?:taken\s+straight\s+from|based\s+on|according\s+to|as\s+stated\s+in|as\s+mentioned\s+in|found\s+in)\s+(?:the\s+information\s+in\s+)?(?:the|this|the\s+provided)\s+document\s*:',
@@ -123,7 +121,6 @@ class ChatProvider extends ChangeNotifier {
       ':',
     );
 
-    // 2. Parenthetical: "(taken straight from the document)" -> ""
     cleaned = cleaned.replaceAll(
       RegExp(
         r'\s*\((?:taken\s+straight\s+from|based\s+on|according\s+to)\s+(?:the\s+information\s+in\s+)?(?:the|this|the\s+provided)\s+document\)',
@@ -132,7 +129,6 @@ class ChatProvider extends ChangeNotifier {
       '',
     );
 
-    // 3. Leading sentence intros: "According to the document, " -> ""
     cleaned = cleaned.replaceAll(
       RegExp(
         r'^(?:According\s+to|Based\s+on|As\s+stated\s+in|As\s+mentioned\s+in|From)\s+(?:the\s+information\s+in\s+)?(?:the|this|the\s+provided)\s+document,?\s*',
@@ -142,7 +138,6 @@ class ChatProvider extends ChangeNotifier {
       '',
     );
 
-    // 4. "taken straight from the document" or "taken straight from the information in the document"
     cleaned = cleaned.replaceAll(
       RegExp(
         r'\b(?:taken\s+straight\s+from|straight\s+from)\s+(?:the\s+information\s+in\s+)?(?:the|this|the\s+provided)\s+document\b',
@@ -151,7 +146,6 @@ class ChatProvider extends ChangeNotifier {
       '',
     );
 
-    // 5. "the information in the document" -> "the health guidance"
     cleaned = cleaned.replaceAll(
       RegExp(
         r'\bthe\s+information\s+in\s+(?:the|this|the\s+provided)\s+document\b',
@@ -160,7 +154,6 @@ class ChatProvider extends ChangeNotifier {
       'the health guidance',
     );
 
-    // 6. "according to the document" -> "according to guidance"
     cleaned = cleaned.replaceAll(
       RegExp(
         r'\baccording\s+to\s+(?:the|this|the\s+provided)\s+document\b',
@@ -169,7 +162,6 @@ class ChatProvider extends ChangeNotifier {
       'according to guidance',
     );
 
-    // 7. "based on the (provided )?document" -> "based on guidance"
     cleaned = cleaned.replaceAll(
       RegExp(
         r'\bbased\s+on\s+(?:the|this|the\s+provided)\s+document\b',
@@ -178,7 +170,6 @@ class ChatProvider extends ChangeNotifier {
       'based on guidance',
     );
 
-    // 8. "in the (provided )?document" -> "in our guidance"
     cleaned = cleaned.replaceAll(
       RegExp(
         r'\bin\s+(?:the|this|the\s+provided)\s+document\b',
@@ -187,7 +178,6 @@ class ChatProvider extends ChangeNotifier {
       'in our guidance',
     );
 
-    // 9. "the (provided )?document states/suggests/recommends/says/indicates" -> "Guidance states/suggests/recommends"
     cleaned = cleaned.replaceAllMapped(
       RegExp(
         r'\b(?:the|this|the\s+provided)\s+document\s+(states|suggests|recommends|mentions|advises|explains|notes|says|indicates|shows)\b',
@@ -196,7 +186,6 @@ class ChatProvider extends ChangeNotifier {
       (match) => 'Guidance ${match.group(1)}',
     );
 
-    // Clean up any double spaces or whitespace created by stripping
     cleaned = cleaned.replaceAll(RegExp(r'[ \t]{2,}'), ' ');
     cleaned = cleaned.trim();
     if (cleaned.isNotEmpty) {

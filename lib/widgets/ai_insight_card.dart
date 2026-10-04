@@ -1,18 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/ai_insight_result.dart';
 
-// -------------------------------------------------------
-// Drop this widget into any tracker screen.
-//
-// Usage:
-//   AiInsightCard(
-//     module: 'sleep',
-//     isLoading: aiProvider.isLoading,
-//     result: aiProvider.result,
-//     onRefresh: () => aiProvider.fetchInsight(...),
-//   )
-// -------------------------------------------------------
-
 class AiInsightCard extends StatelessWidget {
   final String module;
   final bool isLoading;

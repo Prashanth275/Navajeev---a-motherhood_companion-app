@@ -100,38 +100,49 @@ class SymptomsCard extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Symptoms List
-            ...symptoms.map(
-                  (symptom) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+            if (symptoms.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  "Your body is preparing for conception; noticeable pregnancy symptoms typically begin around week 3 or 4.",
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.black87,
+                  ),
+                ),
+              )
+            else
+              ...symptoms.map(
+                (symptom) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    // Dot
-                    Container(
-                      margin: const EdgeInsets.only(top: 6),
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: accent,
-                        shape: BoxShape.circle,
+                      // Dot
+                      Container(
+                        margin: const EdgeInsets.only(top: 6),
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: accent,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(width: 10),
+                      const SizedBox(width: 10),
 
-                    Expanded(
-                      child: Text(
-                        symptom,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium,
+                      Expanded(
+                        child: Text(
+                          symptom,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

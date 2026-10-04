@@ -1,9 +1,9 @@
 [
-  {"weekNumber":1,"babySizeCm":0.0,"symptoms":[],"tips": [
+  {"weekNumber":1,"babySizeCm":0.0,"symptoms":["Your body is preparing for conception; noticeable pregnancy symptoms typically begin around week 3 or 4."],"tips": [
     "Maintain a balanced diet",
     "Avoid alcohol and smoking",
     "Start prenatal vitamins if planning pregnancy"]},
-  {"weekNumber":2,"babySizeCm":0.0,"symptoms":[], "tips": [
+  {"weekNumber":2,"babySizeCm":0.0,"symptoms":["Your body is preparing for conception; noticeable pregnancy symptoms typically begin around week 3 or 4."], "tips": [
     "Continue folic acid supplementation",
     "Stay hydrated",
     "Track your menstrual cycle"]},

@@ -38,7 +38,6 @@ class RecommendationResult {
       return null;
     }
 
-    // Helper for string list fields
     List<String> getList(String key) {
       final val = rootMap[key] ?? json[key];
       if (val is List) {
@@ -86,7 +85,6 @@ class RecommendationResult {
       (devActivity != null && devActivity!.isNotEmpty);
 }
 
-// Helper utilities for resilient parsing
 Map<String, dynamic>? _tryExtractMap(dynamic input) {
   if (input == null) return null;
   if (input is Map<String, dynamic>) return input;
@@ -96,7 +94,6 @@ Map<String, dynamic>? _tryExtractMap(dynamic input) {
   String text = input.trim();
   if (text.isEmpty) return null;
 
-  // Strip markdown code fences if present
   final fenceMatch = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```').firstMatch(text);
   if (fenceMatch != null && fenceMatch.group(1) != null) {
     text = fenceMatch.group(1)!.trim();

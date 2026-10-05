@@ -43,6 +43,19 @@ The AI engine includes:
 
 The knowledge base uses curated maternal and child-health information, including content based on materials associated with the **Ministry of Health & Family Welfare and the Rashtriya Bal Swasthya Karyakram (RBSK)**.
 
+### AI Backend
+
+The AI backend is maintained as a separate repository:
+
+🔗 **[Navajeev AI Engine]([YOUR_AI_BACKEND_GITHUB_LINK](https://github.com/Prashanth275/AI-Engine-for-Navajeev-))**
+
+**Technologies:**
+- FastAPI
+- Python
+- Pinecone
+- Ollama Cloud
+- RAG
+
 ---
 
 ## 🏗️ Architecture

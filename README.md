@@ -47,6 +47,7 @@ The knowledge base uses curated maternal and child-health information, including
 
 ## 🏗️ Architecture
 
+```bash
                          Navajeev
                             │
              ┌──────────────┴──────────────┐
@@ -60,6 +61,8 @@ The knowledge base uses curated maternal and child-health information, including
      │                │        RAG Retrieval   AI Generation
      │                │             │             │
      └────────────────┴─────────────┴─────────────┘
+```
+---
 
 ## 🛠️ Tech Stack
 
@@ -141,6 +144,7 @@ flutter run -d android
 ```bash
 flutter run -d windows
 ```
+---
 
 👨‍💻 Built With
 Flutter • Firebase • Python • FastAPI • Pinecone • Ollama

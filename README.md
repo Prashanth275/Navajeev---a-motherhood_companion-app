@@ -78,44 +78,27 @@ The knowledge base uses curated maternal and child-health information, including
 
 ### Prerequisites
 
-- Flutter SDK
-- Android Studio / Xcode
-- Firebase CLI
-- Android/iOS device or emulator, or a browser
+Make sure you have the following installed:
+
+- [Flutter SDK](https://docs.flutter.dev/get-started/install)
+- [Android Studio](https://developer.android.com/studio) / Xcode for iOS
+- [Firebase CLI](https://firebase.google.com/docs/cli)
+- Android/iOS device or emulator, or a supported browser
 
 ### Installation
 
+Clone the repository:
+
 ```bash
 git clone https://github.com/Prashanth275/Navajeev-a-motherhood_companion-app.git
-
 cd Navajeev-a-motherhood_companion-app
 
+Install Flutter dependencies:
 flutter pub get
 
-Configure your Firebase project and required Firebase configuration files, then run:
-Web
+Configure Firebase for your environment, then run the application:
+Web:
 flutter run -d chrome
 
-Android
+Android:
 flutter run -d android
-
-🧪 Testing
-Run the test suite:
-flutter test
-
-Run static analysis:
-flutter analyze
-
-📦 Production Build
-Android
-flutter build apk --release
-
-Web
-flutter build web --release
-firebase deploy --only hosting
-
-🌐 Live Demo
-https://navajeev-e3262.web.app/
-👨‍💻 Built With
-Flutter • Firebase • Python • FastAPI • Pinecone • Ollama
-Built as a cross-platform application to bring pregnancy, motherhood, baby care, and AI-powered guidance into one connected experience.

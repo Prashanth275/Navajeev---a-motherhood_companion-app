@@ -47,7 +47,7 @@ The knowledge base uses curated maternal and child-health information, including
 
 The AI backend is maintained as a separate repository:
 
-🔗 **[Navajeev AI Engine]([YOUR_AI_BACKEND_GITHUB_LINK](https://github.com/Prashanth275/AI-Engine-for-Navajeev-))**
+🔗 **[Navajeev AI Engine](https://github.com/Prashanth275/AI-Engine-for-Navajeev-)**
 
 **Technologies:**
 - FastAPI

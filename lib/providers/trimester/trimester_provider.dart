@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/trimester/trimester_week_model.dart';
 import '../../repositories/trimester/trimester_repository.dart';
 import '../../services/auth_service.dart';

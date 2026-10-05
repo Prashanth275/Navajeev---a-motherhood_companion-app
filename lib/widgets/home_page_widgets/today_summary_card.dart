@@ -3,15 +3,21 @@ import '../../theme/app_colors.dart';
 import '../app_widgets/primary_card.dart';
 
 class TodayOverviewCard extends StatelessWidget {
-  final int feeds;
+  final int? feeds;
+  final String? babySize;
+  final String? babySizeSubtitle;
   final double sleepHours;
   final String mood;
+  final bool isPregnancy;
 
   const TodayOverviewCard({
     super.key,
-    required this.feeds,
+    this.feeds,
+    this.babySize,
+    this.babySizeSubtitle,
     required this.sleepHours,
     required this.mood,
+    this.isPregnancy = false,
   });
 
   @override
@@ -27,10 +33,31 @@ class TodayOverviewCard extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Item(icon: Icons.restaurant, value: "$feeds", label: "Feeds"),
-              _Item(icon: Icons.bedtime, value: "${sleepHours.toStringAsFixed(1)}h", label: "Sleep"),
-              _Item(icon: Icons.favorite, value: mood, label: "Mood"),
+              if (isPregnancy)
+                _Item(
+                  icon: Icons.child_care,
+                  value: babySize ?? "--",
+                  label: "Baby Size",
+                  subtitle: babySizeSubtitle ?? "This week",
+                )
+              else
+                _Item(
+                  icon: Icons.restaurant,
+                  value: "${feeds ?? 0}",
+                  label: "Feeds",
+                ),
+              _Item(
+                icon: Icons.bedtime,
+                value: "${sleepHours.toStringAsFixed(1)}h",
+                label: "Sleep",
+              ),
+              _Item(
+                icon: Icons.favorite,
+                value: mood,
+                label: "Mood",
+              ),
             ],
           ),
         ],
@@ -43,11 +70,13 @@ class _Item extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
+  final String? subtitle;
 
   const _Item({
     required this.icon,
     required this.value,
     required this.label,
+    this.subtitle,
   });
 
   @override
@@ -82,6 +111,16 @@ class _Item extends StatelessWidget {
             color: Colors.grey,
           ),
         ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            subtitle!,
+            style: const TextStyle(
+              fontSize: 10,
+              color: Colors.grey,
+            ),
+          ),
+        ],
       ],
     );
   }

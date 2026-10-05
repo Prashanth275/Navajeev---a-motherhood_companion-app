@@ -207,7 +207,7 @@ class _LogFeedingScreenState extends State<LogFeedingScreen> {
         return Column(
           children: [
             DropdownButtonFormField<BottleType>(
-              value: _selectedBottleType,
+              initialValue: _selectedBottleType,
               decoration:
               const InputDecoration(labelText: "Bottle Type"),
               items: BottleType.values.map((type) {
@@ -267,7 +267,7 @@ class _LogFeedingScreenState extends State<LogFeedingScreen> {
 
   Widget _buildBreastSideSelector() {
     return DropdownButtonFormField<BreastSide>(
-      value: _selectedBreastSide,
+      initialValue: _selectedBreastSide,
       decoration: const InputDecoration(
         labelText: "Breast Side",
       ),

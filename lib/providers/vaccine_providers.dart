@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/vaccine_model.dart';
-import '../services/notification_service.dart';
 import '../services/auth_service.dart';
 
 class VaccineProvider extends ChangeNotifier {

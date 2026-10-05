@@ -11,7 +11,6 @@ import 'package:navajeev_m/repositories/feeding/feeding_repository.dart';
 import 'package:navajeev_m/repositories/trimester/trimester_repository.dart';
 import 'package:navajeev_m/repositories/wellbeing/wellbeing_repository.dart';
 import 'package:navajeev_m/services/auth_service.dart';
-import 'package:navajeev_m/wrapper.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'theme/app_theme.dart';
@@ -91,11 +90,18 @@ class MyApp extends StatelessWidget {
           create: (_) => TrimesterRepository(),
         ),
 
-        ChangeNotifierProvider(
+        ChangeNotifierProxyProvider<AuthService, TrimesterProvider>(
           create: (context) => TrimesterProvider(
             repository: context.read<TrimesterRepository>(),
             authService: context.read<AuthService>(),
-          ),
+          )..initialize(),
+          update: (context, auth, previous) =>
+              (previous ??
+                  TrimesterProvider(
+                    repository: context.read<TrimesterRepository>(),
+                    authService: auth,
+                  ))
+                ..initialize(),
         ),
 
         Provider<WellbeingRepository>(

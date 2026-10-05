@@ -63,3 +63,10 @@ cmake-build-*/
 
 # Firebase CLI cache
 .firebase/
+
+# AI coding-agent skills (development tooling only)
+.agents/
+skills-lock.json
+
+# Firebase Cloud Functions (unused)
+functions/

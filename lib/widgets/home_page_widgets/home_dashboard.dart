@@ -9,6 +9,7 @@ import '../../providers/ai_insight_provider.dart';
 import '../../providers/feeding/feeding_provider.dart';
 import '../../providers/growth/growth_provider.dart';
 import '../../providers/wellbeing/wellbeing_provider.dart';
+import '../../providers/trimester/trimester_provider.dart';
 import '../../providers/vaccine_providers.dart';
 import '../../repositories/trimester/trimester_repository.dart';
 import '../../../services/auth_service.dart';
@@ -214,6 +215,17 @@ class HomeDashboard extends StatelessWidget {
     final auth = context.watch<AuthService>();
     final babyId = user?.activeBabyId;
     final sleepProvider = context.watch<SleepProvider>();
+    final trimesterProvider = context.watch<TrimesterProvider>();
+
+    if (trimesterProvider.currentWeekData == null &&
+        !trimesterProvider.isLoading &&
+        pregnancy?.expectedDueDate != null) {
+      Future.microtask(() {
+        if (context.mounted) {
+          context.read<TrimesterProvider>().initialize();
+        }
+      });
+    }
 
     final todaySleepHours =
         sleepProvider.todayTotal.inMinutes / 60;
@@ -252,6 +264,13 @@ class HomeDashboard extends StatelessWidget {
     final topConcern = (wellbeingProvider.todayEntry?.notes.trim().isNotEmpty ?? false)
         ? wellbeingProvider.todayEntry!.notes.trim()
         : null;
+
+    final babySizeCm = trimesterProvider.currentWeekData?.babySizeCm;
+    final babySizeText = babySizeCm != null
+        ? (babySizeCm % 1 == 0
+            ? "${babySizeCm.toInt()} cm"
+            : "${babySizeCm.toStringAsFixed(1)} cm")
+        : "--";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,7 +369,9 @@ class HomeDashboard extends StatelessWidget {
         const SizedBox(height: 24),
 
         TodayOverviewCard(
-          feeds: 0,
+          isPregnancy: true,
+          babySize: babySizeText,
+          babySizeSubtitle: "This week",
           sleepHours: todaySleepHours,
           mood: moodText,
         ),

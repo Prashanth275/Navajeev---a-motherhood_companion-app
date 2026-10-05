@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/feeding/feeding_model.dart';
 import '../../repositories/feeding/feeding_repository.dart';
 import '../../services/auth_service.dart';

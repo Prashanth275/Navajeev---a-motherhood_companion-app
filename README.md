@@ -45,7 +45,23 @@ The knowledge base uses curated maternal and child-health information, including
 
 ---
 
-## 🏗️ Tech Stack
+## 🏗️ Architecture
+
+                         Navajeev
+                            │
+             ┌──────────────┴──────────────┐
+             │                             │
+        Flutter App                  AI Engine
+             │                             │
+     ┌───────┼────────┐             ┌──────┴──────┐
+     │       │        │             │             │
+   Firebase Firestore Auth      Pinecone     Ollama Cloud
+     │                │             │             │
+     │                │        RAG Retrieval   AI Generation
+     │                │             │             │
+     └────────────────┴─────────────┴─────────────┘
+
+## 🛠️ Tech Stack
 
 | Area | Technology |
 |---|---|
@@ -85,20 +101,46 @@ Make sure you have the following installed:
 - [Firebase CLI](https://firebase.google.com/docs/cli)
 - Android/iOS device or emulator, or a supported browser
 
-### Installation
+## 🚀 Installation
 
-Clone the repository:
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Prashanth275/Navajeev-a-motherhood_companion-app.git
 cd Navajeev-a-motherhood_companion-app
+```
+
+### 2. Flutter Setup
 
 Install Flutter dependencies:
+
+```bash
 flutter pub get
+```
 
-Configure Firebase for your environment, then run the application:
-Web:
+### 3. Firebase Configuration
+
+Configure Firebase for your environment and ensure the required Firebase configuration files are available.
+
+### 4. Run the Application
+
+**Web:**
+
+```bash
 flutter run -d chrome
+```
 
-Android:
+**Android:**
+
+```bash
 flutter run -d android
+```
+
+**Windows:**
+
+```bash
+flutter run -d windows
+```
+
+👨‍💻 Built With
+Flutter • Firebase • Python • FastAPI • Pinecone • Ollama

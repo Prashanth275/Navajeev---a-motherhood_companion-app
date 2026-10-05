@@ -40,7 +40,7 @@ class _AddGrowthModalState extends State<AddGrowthModal> {
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: Colors.pink,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Form(

@@ -6,6 +6,7 @@ class AiInsightCard extends StatelessWidget {
   final bool isLoading;
   final AiInsightResult? result;
   final VoidCallback? onRefresh;
+  final String? emptyMessage;
 
   const AiInsightCard({
     super.key,
@@ -13,6 +14,7 @@ class AiInsightCard extends StatelessWidget {
     this.isLoading = false,
     this.result,
     this.onRefresh,
+    this.emptyMessage,
   });
 
   @override
@@ -39,7 +41,13 @@ class AiInsightCard extends StatelessWidget {
         children: [
           _Header(module: module, result: result, onRefresh: onRefresh, isLoading: isLoading),
           if (isLoading) const _LoadingBody(),
-          if (!isLoading && result == null) const _EmptyBody(),
+          if (!isLoading && result == null)
+            _EmptyBody(
+              message: emptyMessage ??
+                  (module == 'sleep'
+                      ? 'Log your sleep to get personalized AI insights.'
+                      : 'Log some data to get personalised AI insights.'),
+            ),
           if (!isLoading && result != null) _Body(result: result!),
         ],
       ),
@@ -183,14 +191,15 @@ class _LoadingBody extends StatelessWidget {
 }
 
 class _EmptyBody extends StatelessWidget {
-  const _EmptyBody();
+  final String message;
+  const _EmptyBody({required this.message});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: Text(
-        'Log some data to get personalised AI insights.',
+        message,
         style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
       ),
     );
@@ -236,13 +245,17 @@ class _DefaultBody extends StatelessWidget {
           _Label('Tip'),
           _Bullet(r.tip!),
         ],
-        if (r.action != null || r.trend != null)
+        if (r.action != null || (r.trend != null && r.trend!.isNotEmpty))
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
             child: Wrap(
               spacing: 8, runSpacing: 6,
               children: [
-                if (r.trend != null) _Chip('Trend: ${r.trend}'),
+                if (r.trend != null && r.trend!.isNotEmpty)
+                  if (r.trend == 'insufficient_data')
+                    const _Chip('Trend: Needs 3+ days')
+                  else
+                    _Chip('Trend: ${r.trend}'),
                 if (r.action != null) _Chip(r.action!),
               ],
             ),

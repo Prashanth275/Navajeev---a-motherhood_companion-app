@@ -138,8 +138,7 @@ class _SleepDashboardState extends State<SleepDashboard> {
       );
 
       final isRecent = now.difference(sessionDate).inDays <= 5;
-
-      final isValid = s.startTime != null && s.endTime != null;
+      final isValid = s.endTime.isAfter(s.startTime);
 
       return isRecent && isValid;
     }).toList();
@@ -176,12 +175,36 @@ class _SleepDashboardState extends State<SleepDashboard> {
               const SizedBox(height: 8),
 
               Consumer<AiInsightProvider>(
-                builder: (context, aiProvider, _) => AiInsightCard(
-                  module: 'sleep',
-                  isLoading: aiProvider.isLoading(userId, 'sleep', subject),
-                  result: aiProvider.getResult(userId, 'sleep', subject),
-                  onRefresh: () => _fetchInsight(forceRefresh: true),
-                ),
+                builder: (context, aiProvider, _) {
+                  final validSessions = _getValidSessions(provider.sessions, provider.isMotherSelected);
+                  final loggedDays = validSessions.map((s) =>
+                    "${s.startTime.year}-${s.startTime.month.toString().padLeft(2, '0')}-${s.startTime.day.toString().padLeft(2, '0')}"
+                  ).toSet().length;
+
+                  final String emptyMessage;
+                  if (validSessions.isEmpty) {
+                    emptyMessage = "Log your sleep to get personalized AI insights.";
+                  } else if (loggedDays < 2) {
+                    emptyMessage = "Log at least 2 days of sleep to get a personalized AI insight.";
+                  } else {
+                    emptyMessage = "Log your sleep to get personalized AI insights.";
+                  }
+
+                  final existing = aiProvider.getResult(userId, 'sleep', subject);
+                  if (loggedDays >= 2 && existing == null && !aiProvider.isLoading(userId, 'sleep', subject)) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) _fetchInsight();
+                    });
+                  }
+
+                  return AiInsightCard(
+                    module: 'sleep',
+                    isLoading: aiProvider.isLoading(userId, 'sleep', subject),
+                    result: loggedDays < 2 ? null : existing,
+                    emptyMessage: emptyMessage,
+                    onRefresh: loggedDays >= 2 ? () => _fetchInsight(forceRefresh: true) : null,
+                  );
+                },
               ),
             ],
           ),

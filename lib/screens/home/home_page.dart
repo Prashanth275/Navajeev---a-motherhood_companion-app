@@ -346,11 +346,11 @@ class _DesktopLayout extends StatelessWidget {
                         icon: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.25),
+                            color: Colors.pinkAccent.withValues(alpha: 0.25),
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
                           ),
-                          child: const Icon(Icons.add, color: Colors.white, size: 22),
+                          child: const Icon(Icons.add, color: Colors.pink, size: 22),
                         ),
                         onPressed: () {
                           final auth = context.read<AuthService>();

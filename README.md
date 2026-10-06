@@ -161,3 +161,15 @@ flutter run -d windows
 
 👨‍💻 Built With
 Flutter • Firebase • Python • FastAPI • Pinecone • Ollama
+
+---
+
+## 📱 Download
+
+### Android
+
+Download the latest Android release:
+
+[Download Navajeev for Android](https://github.com/Prashanth275/Navajeev-a-motherhood_companion-app/releases/latest)
+
+---
